@@ -39,10 +39,30 @@ protected:
 	char* end = nullptr;
 	char* curr = nullptr;
 public:
-	bool eof() const { return curr == end; }
-	operator bool() const { return !eof(); }
-	size_t buff_size() const { return end - buff; }
-	const char* raw_view() { return buff; }
+    virtual ~stringstream_base() {
+        if (buff) {
+            delete[] buff;
+        }
+    }
+	bool eof() const {
+        return curr == end;
+    }
+	operator bool() const {
+        return !eof();
+    }
+	size_t buff_size() const {
+        return end - buff;
+    }
+	const char* raw_view() {
+        return buff;
+    }
+    char* eject () {
+        char* tmp = buff;
+        buff = nullptr;
+        end = nullptr;
+        curr = nullptr;
+        return tmp;
+    }
 };
 
 #endif

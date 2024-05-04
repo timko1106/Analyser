@@ -46,12 +46,15 @@ size_t rle::encode(ibitstream_base& in, obitstream_base& out, size_t streamsize)
 }
 
 std::pair<char*, size_t> rle::decode (ibitstream_base& in, size_t streamsize) {
-	if (streamsize == FULL) return {nullptr, FULL};
-	char path[20] = {};
-	sprintf (path, "%llu", proxy_file_name_generator(__FILE_GEN_ARGS));
+	if (streamsize == FULL) {
+        return {nullptr, FULL};
+    }
+	std::string path = std::to_string(proxy_file_name_generator(__FILE_GEN_ARGS));
 	//const char* path = proxy_file_name_generator (__FILE_GEN_ARGS).c_str();
 	std::fstream out (path, std::ios_base::out);
-	if (!out.is_open())return {nullptr, FULL};
+	if (!out.is_open()) {
+        return {nullptr, FULL};
+    }
 	unsigned char curbyte = '\00';
 	int bitoffset = 0;
 	auto func = [&out, &curbyte, &bitoffset](bit b){
@@ -88,13 +91,13 @@ std::pair<char*, size_t> rle::decode (ibitstream_base& in, size_t streamsize) {
 	}
 	if (bitoffset)out << curbyte;
 	out.close();
-	char* buff = new char[(size + 7) / 8];
+	char* buff = new char[(size + 7) / 8 + 1];//NULL-terminated
 	{
-		std::fstream __in (path, std::ios_base::in);
-		__in.read (buff, (size + 7) / 8);
-		__in.close();
+		std::fstream __in__ (path, std::ios_base::in);
+        __in__.read(buff, (size + 7) / 8);
+        __in__.close();
 	}
-	std::remove (path);
+	std::remove (path.c_str());
 	return {buff, size};
 }
 

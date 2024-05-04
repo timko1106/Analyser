@@ -6,15 +6,19 @@
 #include <cstdio>
 #include "StreamBase.hpp"
 
+#ifdef __WINAPI_ENABLED__
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 
 
 using bit = bool;
 struct pos : public base_pos {
 	long long bitoffset;
-	pos() : bitoffset(0) { base_pos::modifiers = BIT_OFFSET; }
-	pos(long long byteoffset, long long bitoffset) : bitoffset(bitoffset) { 
-		base_pos::modifiers = BIT_OFFSET; 
+	pos() : bitoffset(0) {
+        base_pos::modifiers = BIT_OFFSET;
+    }
+	pos(long long byteoffset, long long bitoffset) : bitoffset(bitoffset) {
+		base_pos::modifiers = BIT_OFFSET;
 		base_pos::byteoffset = byteoffset;
 	}
 };
@@ -31,7 +35,7 @@ public:
 class ibitstream : public ibitstream_base, public stringstream_base {
 public:
 	ibitstream(const char* value, size_t buffer = FULL);
-	~ibitstream() { if (buff)delete[] buff; }
+	~ibitstream() { }
 	ibitstream_base& operator>>(bit& value);
 	istream_base& operator>>(char& c);
 	void read(char* data, size_t streamsize);

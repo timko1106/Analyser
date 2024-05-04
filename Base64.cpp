@@ -58,10 +58,10 @@ char* base64::decode(const char* msg, size_t size) {
 	while (used < size) {
 		block_length = 0;
 		for (int i = 0; i < 4; ++i) {
-			char v = 0;
+			unsigned char v = 0;
 			while (used < size && v == 0) {
 				v = msg[used++];
-				if (used < size) {
+				if (used <= size) {
 					v = ((v < 43 || v > 122) ? 0 : (char)cd64[v - 43]);
 					if (v != 0) {
 						v = ((v == '$') ? 0 : v - 61);
@@ -69,7 +69,7 @@ char* base64::decode(const char* msg, size_t size) {
 				}
 				++block_length;
 			}
-			if (used < size) {
+			if (used <= size) {
 				if (v != 0) {
 					inblock[i] = (unsigned char)(v - 1);
 				}
@@ -81,6 +81,7 @@ char* base64::decode(const char* msg, size_t size) {
 		if (block_length) {
 			decode_block(inblock, outblock);
 			memcpy(caret, outblock, 3);
+            memset(inblock, 0, 4);
 			caret += 3;
 		}
 	}

@@ -1,93 +1,108 @@
-#include <iostream>
 #include <locale.h>
-//#include "Base64.hpp"
+#include "Base64.hpp"
 //#include "Bitstream.hpp"
 #include "RLE.hpp"
+#include "FileStream.hpp"
+#include "Xor.hpp"
 
 const size_t BUFF_SIZE = 10000;
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#define __WINAPI_ENABLED__
-#else
-#define UNIX
-#endif
-
 int main () {
+
     #ifdef __WINAPI_ENABLED__
-    system("chcp 65001 >> nul");
+    //SetConsoleOutputCP(CP_UTF8);//Он работает только с UTF16, не многобайтными. Так что смысла нет
+    SetConsoleCP(1251);
+    setlocale (LC_ALL, "Russian");
     #endif
-    setlocale(LC_ALL, "Russian");
+    //XOR test
+    ifstream in ("/home/tim/work/Cyber/Math/task.png.encrypted");
+    ofstream out ("/home/tim/work/Cyber/Math/task.png.decrypted");
+    char key[] = "\x89\x50\x4e\x47";
+    printf ("%d %d\n", in.is_open (), out.is_open ());
+    xor_cipher::execute_by_signature (key, sizeof (key) - 1, in, in.buff_size (), out);
+    printf ("sizeof: %lu\n", sizeof (key) - 1);
+    /*
     char buff[BUFF_SIZE] = {};
-    std::cout << "Enter smth: ";
-    std::cin.getline(buff, BUFF_SIZE);
-    obitstream __out ((strlen(buff) + 7) / 8);
-    for (char* ptr = buff; *ptr != '\00'; ++ptr)__out << (*ptr == '1');
-    ibitstream in(__out.raw_view(), __out.buff_size());
+    printf("Enter smth: ");
+    fgets(buff, BUFF_SIZE, stdin);*/
+    /*
+    //rle test (win1251)
+    obitstream __out__ ((strlen(buff) + 7) / 8);
+    int cnt = 0;
+    for (char *ptr = buff; *ptr != '\00'; ++ptr)
     {
-        std::pair<char*, size_t> res = rle::decode(in, strlen (buff));
+        if (!(*ptr == '0' || *ptr == '1'))
+            continue;
+        __out__ << (*ptr == '1');
+        ++cnt;
+    }
+    ibitstream in(__out__.eject(), (cnt + 7) / 8);
+    {
+        std::pair<char*, size_t> res = rle::decode(in, cnt);
         ibitstream is (res.first, (res.second + 7) / 8);
         //return 0;
         bit b;
         int counter = 0;
         for (int i = 0; i < res.second; ++i) {
             is >> b;
-            std::cout << b;
+            printf("%d", b);
             ++counter;
             if (counter == 8) {
                 counter = 0;
-                std::cout << ' ';
+                printf(" ");
             }
         }
-        char* result = new char[(res.second + 7) / 8];
+        char* result = new char[((res.second + 7) / 8 + 1) * 2];//многобайтовые строки
         cp1251_to_utf8 (res.first, result, (res.second + 7) / 8);
-        std::cout << '\n' << result;
+        printf("\n%s", result);
         delete[] result;
         delete[] res.first;
-    }
-    /*
-
-    //std::cout << out.raw_view() << '\n';
-    {
-        int cnt = rle::encode(in, out, strlen(buff));
-        ibitstream is(out.raw_view(), cnt);
-        bit b;
-        int counter = 0;
-        for (int i = 0; i < cnt; ++i) {
-            is >> b;
-            std::cout << b;
-            ++counter;
-            if (counter == 8) {
-                counter = 0;
-                std::cout << ' ';
-            }
-        }
     }*/
     /*
-    char* encoded = base64::encode(buff);
-    char* decoded = base64::decode(encoded);
-    std::cout << encoded << '\n' << decoded << '\n';
-    delete[] encoded;
-    delete[] decoded;
-    ibitstream bs(buff);
-    obitstream obs(strlen(buff) + 2);
+     /Base64 test (win1251)
+    int len = strlen(buff);
+    if (buff[len - 1] == '\n') {
+        buff[len - 1] = '\00';
+    }
+#ifdef __WINAPI_ENABLED__
+    char *encoded_ascii1251 = base64::encode(buff);
+    char *encoded_utf8 = new char[strlen(encoded_ascii1251) * 2 + 2];
+    cp1251_to_utf8(encoded_ascii1251, encoded_utf8);
+    char *decoded_ascii1251 = base64::decode(encoded_ascii1251);
+    char *decoded_utf8 = new char[strlen(decoded_ascii1251) * 2 + 2];
+    cp1251_to_utf8(decoded_ascii1251, decoded_utf8);
+#else
+    char* before_encoding_ascii1251 = new char[strlen(buff) + 1];
+    utf8_to_cp1251(buff, before_encoding_ascii1251);
+    char* encoded_ascii1251 = base64::encode(before_encoding_ascii1251);
+    char* encoded_utf8 = new char [strlen(encoded_ascii1251) * 2 + 2];
+    cp1251_to_utf8(encoded_ascii1251, encoded_utf8);
+    char *decoded_ascii1251 = base64::decode(encoded_ascii1251);
+    char *decoded_utf8 = new char[strlen(decoded_ascii1251) * 2 + 2];
+    cp1251_to_utf8(decoded_ascii1251, decoded_utf8);
+    delete[] before_encoding_ascii1251;
+#endif
+#ifdef __WINAPI_ENABLED__
+    printf("%s\n%s\n", encoded_ascii1251, decoded_ascii1251);
+#else
+	printf("%s\n%s\n", encoded_utf8, decoded_utf8);
+#endif
+    ibitstream bs(decoded_ascii1251);
+    obitstream obs(strlen(decoded_ascii1251) + 2);
     int counter = 0;
     while (bs) {
         bit b;
         bs >> b;
         obs << b;
-        std::cout << b;
+        printf("%d", b);
         ++counter;
         if (counter == 8) {
             counter = 0;
-            std::cout << ' ';
+            printf (" ");
         }
     }
-    pos* p = static_cast<pos*>(bs.tellg());
-    --(p->byteoffset);
-    bs.seekg(*p);
-    delete p;
-    char c;
-    bs >> c;
-    obs << c;
-    std::cout << '\n' << obs.raw_view();*/
+    delete[] encoded_ascii1251;
+    delete[] encoded_utf8;
+    delete[] decoded_ascii1251;
+    delete[] decoded_utf8;*/
 }
