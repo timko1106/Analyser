@@ -3,18 +3,18 @@
 
 #include "Bitstream.hpp"
 
-ibitstream::ibitstream(const char* value, size_t buffer) : ibitstream_base() {
-	size_t streamsize = buffer;
+ibitstream::ibitstream(const char* value, _size_t buffer) : ibitstream_base() {
+	_size_t streamsize = buffer;
 	if (buffer == FULL) {
-        streamsize = strlen(value);
-    }
+		streamsize = strlen(value);
+	}
 	buff = new char[streamsize];
 	if (value != nullptr) {
-        memcpy(buff, value, streamsize);
-    }
+		memcpy(buff, value, streamsize);
+	}
 	else {
-        memset(buff, 0, streamsize);
-    }
+		memset(buff, 0, streamsize);
+	}
 	curr = buff;
 	end = buff + streamsize;
 }
@@ -23,16 +23,16 @@ base_pos* ibitstream::tellg() const {
 }
 void ibitstream::seekg(const base_pos& p){
 	if (p.modifiers == EMPTY) {
-        curr = buff + p.byteoffset;
-        if (curr >= end) {
-            curr = end;
-        }
-        if (curr < buff) {
-            curr = buff;
-        }
-        bitoffset = 0;
-        return;
-    }
+		curr = buff + p.byteoffset;
+		if (curr >= end) {
+			curr = end;
+		}
+		if (curr < buff) {
+			curr = buff;
+		}
+		bitoffset = 0;
+		return;
+	}
 	const pos& _p = (const pos&)p;
 	bitoffset = _p.bitoffset & 0b111;
 	if (_p.byteoffset + buff >= end) {
@@ -48,8 +48,8 @@ void ibitstream::seekg(const base_pos& p){
 
 ibitstream_base& ibitstream::operator>>(bit& value) {
 	if (eof()) {
-        value = false;
-        return *this;
+		value = false;
+		return *this;
     }
 	value = (unsigned char)(*curr) & ((unsigned char)1 << (7 - bitoffset));
 	++bitoffset;
@@ -71,7 +71,7 @@ istream_base& ibitstream::operator>>(char& c) {
 	return *this;
 }
 
-void ibitstream::read(char* data, size_t streamsize) {
+void ibitstream::read(char* data, _size_t streamsize) {
 	if (eof()) {
         return;
     }

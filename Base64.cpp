@@ -14,13 +14,13 @@ void encode_block(unsigned char in[3], unsigned char out[4], int len) {
 	out[3] = (unsigned char)(len > 2 ? cb64[(int)(in[2] & 0x3f)] : '=');
 }
 
-char* base64::encode(const char* msg, size_t size) {
+char* base64::encode(const char* msg, _size_t size) {
 	if (size == FULL)size = strlen(msg);
-	size_t allocated = size * 4 / 3 + 5;
+	_size_t allocated = size * 4 / 3 + 5;
 	char* result = new char[allocated];
 	memset(result, 0, allocated);
 	unsigned char inblock[3] = {}, outblock[4] = {};
-	size_t used = 0, block_length = 0;
+	_size_t used = 0, block_length = 0;
 	char* caret = result;
 	while (used < size) {
 		block_length = 0;
@@ -47,13 +47,13 @@ void decode_block(unsigned char in[4], unsigned char out[3]) {
 	out[2] = (unsigned char)(((in[2] << 6) & 0xc0) | in[3]);
 }
 
-char* base64::decode(const char* msg, size_t size) {
+char* base64::decode(const char* msg, _size_t size) {
 	if (size == FULL)size = strlen(msg);
-	size_t allocated = size * 3 / 4 + 4;
+	_size_t allocated = size * 3 / 4 + 4;
 	unsigned char inblock[4] = {}, outblock[3] = {};
 	char* result = new char[allocated];
 	memset(result, 0, allocated);
-	size_t used = 0, block_length = 0;
+	_size_t used = 0, block_length = 0;
 	char* caret = result;
 	while (used < size) {
 		block_length = 0;
@@ -80,8 +80,8 @@ char* base64::decode(const char* msg, size_t size) {
 		}
 		if (block_length) {
 			decode_block(inblock, outblock);
-            memcpy(caret, outblock, 3);
-            memset(inblock, 0, 4);
+			memcpy(caret, outblock, 3);
+ 			memset(inblock, 0, 4);
 			caret += 3;
 		}
 	}

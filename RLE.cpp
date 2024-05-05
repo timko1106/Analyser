@@ -3,13 +3,13 @@
 
 #include "RLE.hpp"
 
-size_t rle::encode(ibitstream_base& in, obitstream_base& out, size_t streamsize) {
+_size_t rle::encode(ibitstream_base& in, obitstream_base& out, _size_t streamsize) {
 	if (streamsize == FULL)return FULL;
 	bit current;
 	in >> current;
 	out << current;
 	int counter = 1;
-	size_t res{ 1 };
+	_size_t res{ 1 };
 	for (int j = 1; j < streamsize; ++j) {
 		bit next;
 		in >> next;
@@ -45,7 +45,7 @@ size_t rle::encode(ibitstream_base& in, obitstream_base& out, size_t streamsize)
 	return res;
 }
 
-std::pair<char*, size_t> rle::decode (ibitstream_base& in, size_t streamsize) {
+std::pair<char*, _size_t> rle::decode (ibitstream_base& in, _size_t streamsize) {
 	if (streamsize == FULL) {
         return {nullptr, FULL};
     }
@@ -69,15 +69,15 @@ std::pair<char*, size_t> rle::decode (ibitstream_base& in, size_t streamsize) {
 	bit curr, next;
 	obitstream_handled<decltype(func)> os (func);
 	in >> curr;
-	size_t counter = 0;
-	size_t size = 0;
-	for (size_t i = 1; i < streamsize; ++i) {
+	_size_t counter = 0;
+	_size_t size = 0;
+	for (_size_t i = 1; i < streamsize; ++i) {
 		in >> next;
 		if (!next) {
 			++counter;
 			continue;
 		}
-		size_t value = 1;
+		_size_t value = 1;
 		for (int j = 0; j < counter; ++j) {
 			value <<= 1;
 			in >> next;

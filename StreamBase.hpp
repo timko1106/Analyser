@@ -9,7 +9,7 @@ enum modifiers_t {
 };
 
 struct base_pos {
-	size_t byteoffset;
+	_size_t byteoffset;
 	modifiers_t modifiers = EMPTY;
 };
 
@@ -21,19 +21,19 @@ public:
 	virtual base_pos* tellg() const = 0;
 	virtual bool eof() const = 0;
 	operator bool() const { return !eof(); };
-	virtual size_t buff_size() const = 0;
+	virtual _size_t buff_size() const = 0;
 };
 class istream_base : public iostream_base {
 public:
     virtual ~istream_base () { }
 	virtual istream_base& operator>>(char& c) = 0;
-	virtual void read(char* data, size_t streamsize) = 0;
+	virtual void read(char* data, _size_t streamsize) = 0;
 };
 class ostream_base : public iostream_base {
 public:
     virtual ~ostream_base () { }
 	virtual ostream_base& operator<<(char c) = 0;
-	virtual void write(const char* data, size_t streamsize = FULL) = 0;
+	virtual void write(const char* data, _size_t streamsize = FULL) = 0;
 };
 //stringstream НЕ ВЛАДЕЕТ, он копирует чужой буффер (не доверяем).
 class stringstream_base : public iostream_base {
@@ -63,7 +63,7 @@ public:
 	operator bool() const {
         return !eof();
     }
-	size_t buff_size() const {
+	_size_t buff_size() const {
         return end - buff;
     }
 	const char* raw_view() {

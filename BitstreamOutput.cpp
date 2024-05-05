@@ -3,7 +3,7 @@
 
 #include "Bitstream.hpp"
 
-obitstream::obitstream(size_t buffer_size) {
+obitstream::obitstream(_size_t buffer_size) {
 	buff = new char[buffer_size];
 	curr = buff;
 	end = buff + buffer_size;
@@ -35,7 +35,7 @@ ostream_base& obitstream::operator<<(char c) {
 	return *this;
 }
 
-void obitstream::write(const char* data, size_t streamsize) {
+void obitstream::write(const char* data, _size_t streamsize) {
 	if (eof())return;
 	if (streamsize > end - curr) {
 		streamsize = end - curr;
@@ -47,16 +47,16 @@ void obitstream::write(const char* data, size_t streamsize) {
 
 void obitstream::seekg(const base_pos& p) {
 	if (p.modifiers == EMPTY) {
-        curr = buff + p.byteoffset;
-        if (curr >= end) {
-            curr = end;
-        }
-        if (curr < buff) {
-            curr = buff;
-        }
-        bitoffset = 0;
-        return;
-    }
+		curr = buff + p.byteoffset;
+		if (curr >= end) {
+			curr = end;
+		}
+		if (curr < buff) {
+			curr = buff;
+		}
+		bitoffset = 0;
+		return;
+	}
 	const pos& _p = (const pos&)p;
 	bitoffset = _p.bitoffset & 0b111;
 	if (_p.byteoffset + buff >= end) {

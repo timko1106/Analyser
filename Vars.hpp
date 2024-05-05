@@ -22,8 +22,9 @@
 #include <string>
 #include <cstdlib>
 
+using _size_t = unsigned long long;
 
-const size_t FULL = -1;
+const _size_t FULL = -1;
 
 struct someinfo {
     std::thread::id __id;
@@ -32,10 +33,10 @@ struct someinfo {
     int line;
 };
 
-inline void hash_combine(std::size_t& seed) { }
+inline void hash_combine(_size_t& seed) { }
 
 template <typename T, typename... Rest>
-inline void hash_combine(std::size_t& seed, const T& v, Rest... rest) {
+inline void hash_combine(_size_t& seed, const T& v, Rest... rest) {
     std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     hash_combine (seed, rest...);
@@ -44,8 +45,8 @@ inline void hash_combine(std::size_t& seed, const T& v, Rest... rest) {
 #define MAKE_HASHABLE(type, ...) \
     namespace std {\
         template<> struct hash<type> {\
-            std::size_t operator()(const type &t) const {\
-                std::size_t ret = 0;\
+            _size_t operator()(const type &t) const {\
+                _size_t ret = 0;\
                 hash_combine(ret, __VA_ARGS__);\
                 return ret;\
             }\
@@ -55,15 +56,15 @@ MAKE_HASHABLE (someinfo, t.__id, t.file, t.function, t.line);
 
 #define __FILE_GEN_ARGS __FILE__, __FUNCTION__, __LINE__
 
-inline size_t proxy_file_name_generator (const char* file, const char* function, int line) {
-    size_t __hash = std::hash<someinfo>{}({std::this_thread::get_id(), file, function, line});
+inline _size_t proxy_file_name_generator (const char* file, const char* function, int line) {
+    _size_t __hash = std::hash<someinfo>{}({std::this_thread::get_id(), file, function, line});
     //printf ("%llu\n", __hash);
     return __hash;
 }
 
 
 //https://github.com/Iyamoto/iconv-lite
-inline void cp1251_to_utf8 (const char* in, char* out, size_t streamsize = FULL) {
+inline void cp1251_to_utf8 (const char* in, char* out, _size_t streamsize = FULL) {
     if (streamsize == FULL) {
         streamsize = strlen(in);
     }

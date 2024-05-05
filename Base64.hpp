@@ -7,8 +7,8 @@
 #include "Vars.hpp"
 
 namespace base64 {
-	char* encode(const char* msg, size_t size = FULL);
-	char* decode(const char* msg, size_t size = FULL);
+	char* encode(const char* msg, _size_t size = FULL);
+	char* decode(const char* msg, _size_t size = FULL);
 }
 
 

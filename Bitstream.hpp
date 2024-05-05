@@ -15,7 +15,7 @@ using bit = bool;
 struct pos : public base_pos {
 	long long bitoffset;
 	pos() : bitoffset(0) {
-        base_pos::modifiers = BIT_OFFSET;
+		base_pos::modifiers = BIT_OFFSET;
     }
 	pos(long long byteoffset, long long bitoffset) : bitoffset(bitoffset) {
 		base_pos::modifiers = BIT_OFFSET;
@@ -29,35 +29,35 @@ public:
 	ibitstream_base() : bitoffset(0) {}
 	virtual ~ibitstream_base() {
 #if VERBOSE
-        printf ("~ibitstream_base at %p\n", this);
+		printf ("~ibitstream_base at %p\n", this);
 #endif
-    }
+	}
 	virtual ibitstream_base& operator>>(bit& value) = 0;
 	virtual istream_base& operator>>(char& c) = 0;
-	virtual void read(char* data, size_t streamsize) = 0;
+	virtual void read(char* data, _size_t streamsize) = 0;
 };
 class ibitstream : public ibitstream_base, public stringstream_base {
 public:
-	ibitstream(const char* value, size_t buffer = FULL);
+	ibitstream(const char* value, _size_t buffer = FULL);
 	~ibitstream() {
 #if VERBOSE
-        printf ("~ibitstream at %p\n", this);
+		printf ("~ibitstream at %p\n", this);
 #endif
-    }
+	}
 	ibitstream_base& operator>>(bit& value);
 	istream_base& operator>>(char& c);
-	void read(char* data, size_t streamsize);
+	void read(char* data, _size_t streamsize);
 	void seekg(const base_pos& p);
 	base_pos* tellg() const;
 	bool eof() const {
-        return stringstream_base::eof();
-    }
-	size_t buff_size() const {
-        return stringstream_base::buff_size();
-    }
+		return stringstream_base::eof();
+	}
+	_size_t buff_size() const {
+		return stringstream_base::buff_size();
+	}
 	operator bool() const {
-        return stringstream_base::operator bool();
-    }
+		return stringstream_base::operator bool();
+	}
 };
 class obitstream_base : public ostream_base {
 protected:
@@ -66,32 +66,32 @@ public:
 	obitstream_base() : bitoffset(0) {}
 	virtual ~obitstream_base() {
 #if VERBOSE
-        printf ("~obitstream_base at %p\n", this);
+		printf ("~obitstream_base at %p\n", this);
 #endif
-    }
+	}
 	virtual obitstream_base& operator<<(bit value) = 0;
 	virtual ostream_base& operator<< (char c) = 0;
-	virtual void write(const char* data, size_t streamsize = FULL) = 0;
+	virtual void write(const char* data, _size_t streamsize = FULL) = 0;
 };
 class obitstream : public obitstream_base, public stringstream_base {
 public:
-	obitstream(size_t buffer_size);
+	obitstream(_size_t buffer_size);
 	~obitstream() {
 #if VERBOSE
-        printf ("~obitstream at %p\n", this);
+		printf ("~obitstream at %p\n", this);
 #endif
-    }
+	}
 	obitstream_base& operator<<(bit value);
 	ostream_base& operator<< (char c);
-	void write(const char* data, size_t streamsize = FULL);
+	void write(const char* data, _size_t streamsize = FULL);
 	bool eof() const {
-        return stringstream_base::eof();
+		return stringstream_base::eof();
     }
-	size_t buff_size() const {
-        return stringstream_base::buff_size();
+	_size_t buff_size() const {
+		return stringstream_base::buff_size();
     }
 	operator bool() const {
-        return stringstream_base::operator bool();
+		return stringstream_base::operator bool();
     }
 	void seekg(const base_pos& p);
 	base_pos* tellg() const;
@@ -103,8 +103,8 @@ private:
 public:
 	obitstream_handled (const Handle& handler) : handler(handler) {}
 	obitstream_base& operator<< (bit value) override {
-        handler(value);
-        return *this;
+		handler(value);
+		return *this;
     }
 	ostream_base& operator<< (char c) override {
 		unsigned char _c = c;
@@ -113,26 +113,27 @@ public:
 		}
 		return *this;
 	}
-	void write (const char* data, size_t streamsize = FULL) {
+	void write (const char* data, _size_t streamsize = FULL) {
 		if (streamsize == FULL) {
-            streamsize = strlen(data);
+			streamsize = strlen(data);
         }
 		while (streamsize--) {
-            (*this) << data[streamsize];
+			(*this) << data[streamsize];
         }
 	}
 	bool eof() const {
-        return false;
+		return false;
     }
-	size_t buff_size() const {
-        return FULL;
+	_size_t buff_size() const {
+		return FULL;
     }
 	operator bool() const {
-        return true;
+		return true;
     }
+    //ignore
 	void seekg (const base_pos& p) { }
 	base_pos* tellg() const {
-        return nullptr;
+		return nullptr;
     }
 };
 
