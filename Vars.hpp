@@ -10,6 +10,7 @@
 #else
 #define UNIX
 #endif
+#define VERBOSE 0
 
 #include <cstddef>
 #include <cstring>

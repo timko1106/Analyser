@@ -46,7 +46,17 @@ void obitstream::write(const char* data, size_t streamsize) {
 }
 
 void obitstream::seekg(const base_pos& p) {
-	if (p.modifiers == EMPTY)return;
+	if (p.modifiers == EMPTY) {
+        curr = buff + p.byteoffset;
+        if (curr >= end) {
+            curr = end;
+        }
+        if (curr < buff) {
+            curr = buff;
+        }
+        bitoffset = 0;
+        return;
+    }
 	const pos& _p = (const pos&)p;
 	bitoffset = _p.bitoffset & 0b111;
 	if (_p.byteoffset + buff >= end) {

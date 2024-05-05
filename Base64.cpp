@@ -80,7 +80,7 @@ char* base64::decode(const char* msg, size_t size) {
 		}
 		if (block_length) {
 			decode_block(inblock, outblock);
-			memcpy(caret, outblock, 3);
+            memcpy(caret, outblock, 3);
             memset(inblock, 0, 4);
 			caret += 3;
 		}

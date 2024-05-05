@@ -16,7 +16,7 @@ struct base_pos {
 class iostream_base {
 public:
 	iostream_base() {}
-	virtual ~iostream_base() {}
+	virtual ~iostream_base() { }
 	virtual void seekg(const base_pos &p) = 0;
 	virtual base_pos* tellg() const = 0;
 	virtual bool eof() const = 0;
@@ -25,14 +25,17 @@ public:
 };
 class istream_base : public iostream_base {
 public:
+    virtual ~istream_base () { }
 	virtual istream_base& operator>>(char& c) = 0;
 	virtual void read(char* data, size_t streamsize) = 0;
 };
 class ostream_base : public iostream_base {
 public:
+    virtual ~ostream_base () { }
 	virtual ostream_base& operator<<(char c) = 0;
 	virtual void write(const char* data, size_t streamsize = FULL) = 0;
 };
+//stringstream НЕ ВЛАДЕЕТ, он копирует чужой буффер (не доверяем).
 class stringstream_base : public iostream_base {
 protected:
 	char* buff = nullptr;
@@ -40,9 +43,19 @@ protected:
 	char* curr = nullptr;
 public:
     virtual ~stringstream_base() {
+#if VERBOSE
+        printf ("~stringstream_base at %p ", this);
+#endif
         if (buff) {
             delete[] buff;
+#if VERBOSE
+            printf ("%p deleted", buff);
+#endif
+            buff = nullptr;
         }
+#if VERBOSE
+        printf ("\n");
+#endif
     }
 	bool eof() const {
         return curr == end;
