@@ -26,9 +26,9 @@ class ibitstream_base : public istream_base {
 protected:
 	int bitoffset;
 public:
-	ibitstream_base() : bitoffset(0) {}
+	ibitstream_base () : bitoffset(0) {}
 	virtual ~ibitstream_base() {
-#if VERBOSE
+#if VERBOSE_DTORS
 		printf ("~ibitstream_base at %p\n", this);
 #endif
 	}
@@ -38,21 +38,22 @@ public:
 };
 class ibitstream : public ibitstream_base, public stringstream_base {
 public:
-	ibitstream(const char* value, _size_t buffer = FULL);
-	~ibitstream() {
-#if VERBOSE
+    ibitstream (const char* value, _size_t buffer = FULL);
+	ibitstream (char* value, _size_t buffer = FULL, bool own = false);
+	~ibitstream () {
+#if VERBOSE_DTORS
 		printf ("~ibitstream at %p\n", this);
 #endif
 	}
-	ibitstream_base& operator>>(bit& value);
-	istream_base& operator>>(char& c);
-	void read(char* data, _size_t streamsize);
-	void seekg(const base_pos& p);
-	base_pos* tellg() const;
-	bool eof() const {
+	ibitstream_base& operator>>(bit& value) override;
+	istream_base& operator>>(char& c) override;
+	void read(char* data, _size_t streamsize) override;
+	void seekg(const base_pos& p) override;
+	base_pos* tellg() const override;
+	bool eof() const override {
 		return stringstream_base::eof();
 	}
-	_size_t buff_size() const {
+	_size_t buff_size() const override{
 		return stringstream_base::buff_size();
 	}
 	operator bool() const {
@@ -63,9 +64,9 @@ class obitstream_base : public ostream_base {
 protected:
 	int bitoffset;
 public:
-	obitstream_base() : bitoffset(0) {}
-	virtual ~obitstream_base() {
-#if VERBOSE
+	obitstream_base () : bitoffset(0) {}
+	virtual ~obitstream_base () {
+#if VERBOSE_DTORS
 		printf ("~obitstream_base at %p\n", this);
 #endif
 	}
@@ -75,26 +76,26 @@ public:
 };
 class obitstream : public obitstream_base, public stringstream_base {
 public:
-	obitstream(_size_t buffer_size);
-	~obitstream() {
-#if VERBOSE
+	obitstream (_size_t buffer_size);
+	~obitstream () {
+#if VERBOSE_DTORS
 		printf ("~obitstream at %p\n", this);
 #endif
 	}
-	obitstream_base& operator<<(bit value);
-	ostream_base& operator<< (char c);
-	void write(const char* data, _size_t streamsize = FULL);
-	bool eof() const {
+	obitstream_base& operator<<(bit value) override;
+	ostream_base& operator<< (char c) override;
+	void write(const char* data, _size_t streamsize = FULL) override;
+	bool eof() const override {
 		return stringstream_base::eof();
     }
-	_size_t buff_size() const {
+	_size_t buff_size() const override {
 		return stringstream_base::buff_size();
     }
 	operator bool() const {
 		return stringstream_base::operator bool();
     }
-	void seekg(const base_pos& p);
-	base_pos* tellg() const;
+	void seekg(const base_pos& p) override;
+	base_pos* tellg() const override;
 };
 template<typename Handle>
 class obitstream_handled : public obitstream_base {
@@ -108,12 +109,12 @@ public:
     }
 	ostream_base& operator<< (char c) override {
 		unsigned char _c = c;
-		for (unsigned char i = 7; i >= 0; --i) {
-			handler ((_c & (1 << i)) != 0);
+		for (unsigned char i = 0; i < 8; --i) {
+			handler ((_c & (1 << (7 - i))) != 0);
 		}
 		return *this;
 	}
-	void write (const char* data, _size_t streamsize = FULL) {
+	void write (const char* data, _size_t streamsize = FULL) override {
 		if (streamsize == FULL) {
 			streamsize = strlen(data);
         }
@@ -121,18 +122,18 @@ public:
 			(*this) << data[streamsize];
         }
 	}
-	bool eof() const {
+	bool eof() const override {
 		return false;
     }
-	_size_t buff_size() const {
+	_size_t buff_size() const override {
 		return FULL;
     }
 	operator bool() const {
 		return true;
     }
     //ignore
-	void seekg (const base_pos& p) { }
-	base_pos* tellg() const {
+	void seekg (const base_pos& p) override { }
+	base_pos* tellg() const override {
 		return nullptr;
     }
 };

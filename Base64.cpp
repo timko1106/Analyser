@@ -20,8 +20,9 @@ char* base64::encode(const char* msg, _size_t size) {
 	char* result = new char[allocated];
 	memset(result, 0, allocated);
 	unsigned char inblock[3] = {}, outblock[4] = {};
-	_size_t used = 0, block_length = 0;
+	_size_t used = 0;
 	char* caret = result;
+    int block_length;
 	while (used < size) {
 		block_length = 0;
 		for (int i = 0; i < 3; ++i) {

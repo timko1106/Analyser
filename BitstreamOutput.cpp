@@ -3,21 +3,17 @@
 
 #include "Bitstream.hpp"
 
-obitstream::obitstream(_size_t buffer_size) {
-	buff = new char[buffer_size];
-	curr = buff;
-	end = buff + buffer_size;
-	bitoffset = 0;
+obitstream::obitstream(_size_t buffer_size) : obitstream_base (), stringstream_base (new char[buffer_size + 1], buffer_size) {
 	memset(buff, 0, buffer_size);
 }
 
 obitstream_base& obitstream::operator<<(bit value) {
 	if (eof())return *this;
 	if (value) {
-		(*curr) |= (1 << (7 - bitoffset));
+		(*curr) |= ((unsigned char)1 << (7 - bitoffset));
 	}
 	else {
-		(*curr) &= ~(1 << (7 - bitoffset));
+		(*curr) &= (unsigned char)(~((unsigned char)1 << (7 - bitoffset)));
 	}
 	++bitoffset;
 	if (bitoffset == 8) {
@@ -36,9 +32,11 @@ ostream_base& obitstream::operator<<(char c) {
 }
 
 void obitstream::write(const char* data, _size_t streamsize) {
-	if (eof())return;
-	if (streamsize > end - curr) {
-		streamsize = end - curr;
+	if (eof ()) {
+        return;
+    }
+	if (streamsize > (_size_t)(end - curr)) {
+		streamsize = (_size_t)(end - curr);
 	}
 	memcpy(curr, data, streamsize);
 	bitoffset = 0;

@@ -7,7 +7,6 @@
 
 namespace rle {
 	std::pair<char*, _size_t> decode(ibitstream_base& in, _size_t streamsize);
-	//void decode(ibitstream& in, obitstream_base& out, _size_t streamsize = FULL);
 	_size_t encode(ibitstream_base& in, obitstream_base& out, _size_t streamsize);
 }
 

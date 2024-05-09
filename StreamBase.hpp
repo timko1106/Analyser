@@ -25,13 +25,13 @@ public:
 };
 class istream_base : public iostream_base {
 public:
-    virtual ~istream_base () { }
+	virtual ~istream_base () { }
 	virtual istream_base& operator>>(char& c) = 0;
 	virtual void read(char* data, _size_t streamsize) = 0;
 };
 class ostream_base : public iostream_base {
 public:
-    virtual ~ostream_base () { }
+	virtual ~ostream_base () { }
 	virtual ostream_base& operator<<(char c) = 0;
 	virtual void write(const char* data, _size_t streamsize = FULL) = 0;
 };
@@ -42,40 +42,45 @@ protected:
 	char* end = nullptr;
 	char* curr = nullptr;
 public:
-    virtual ~stringstream_base() {
-#if VERBOSE
-        printf ("~stringstream_base at %p ", this);
+	stringstream_base (char* buffer, _size_t buff_size) {
+		buff = buffer;
+		end = buff + buff_size;
+		curr = buff;
+	}
+	virtual ~stringstream_base() {
+#if VERBOSE_DTORS
+		printf ("~stringstream_base at %p ", this);
 #endif
-        if (buff) {
-            delete[] buff;
-#if VERBOSE
-            printf ("%p deleted", buff);
+		if (buff) {
+			delete[] buff;
+#if VERBOSE_DTORS
+			printf ("%p deleted", buff);
 #endif
-            buff = nullptr;
-        }
-#if VERBOSE
-        printf ("\n");
+			buff = nullptr;
+		}
+#if VERBOSE_DTORS
+		printf ("\n");
 #endif
-    }
+	}
 	bool eof() const {
-        return curr == end;
-    }
+		return curr == end;
+	}
 	operator bool() const {
-        return !eof();
-    }
+		return !eof();
+	}
 	_size_t buff_size() const {
-        return end - buff;
-    }
+		return end - buff;
+	}
 	const char* raw_view() {
-        return buff;
-    }
-    char* eject () {
-        char* tmp = buff;
-        buff = nullptr;
-        end = nullptr;
-        curr = nullptr;
-        return tmp;
-    }
+		return buff;
+	}
+	char* eject () {
+		char* tmp = buff;
+		buff = nullptr;
+		end = nullptr;
+		curr = nullptr;
+		return tmp;
+	}
 };
 
 #endif

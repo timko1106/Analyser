@@ -1,4 +1,3 @@
-#include <locale.h>
 #include "Base64.hpp"
 #include "Bitstream.hpp"
 #include "RLE.hpp"
@@ -14,7 +13,7 @@ int main () {
 	SetConsoleCP(1251);
 	setlocale (LC_ALL, "Russian");
 	#endif
-	char buff[BUFF_SIZE] = {};
+	/*char buff[BUFF_SIZE] = {};
 	printf("Enter smth: ");
 	fgets(buff, BUFF_SIZE, stdin);
 	obitstream __out__ ((strlen(buff) + 7) / 8);
@@ -26,11 +25,13 @@ int main () {
 		__out__ << (*ptr == '1');
 		++cnt;
 	}
-	//11011111 00100001
-	ibitstream in(__out__.raw_view (), (cnt + 7) / 8);
-	_size_t encoded_size = hamming::get_encode_size (cnt, 4);
+    printf ("%d\n", cnt);*/
+	//11011111 00100001 code->decode
+    //101010010000011 000100010111111 100101111011101 011010011101010 100010111111001 000100100000011 011001100111100 111101010100000 111011001100111 010000000111101 000101111000000 000111111100000 decode->code, или 001010011010111 010000010111000 000001101100111 111101010001110 001011000000001
+	/*ibitstream in(__out__.eject (), (cnt + 7) / 8, true);
+	_size_t encoded_size = hamming::get_decode_size (cnt, 4);
 	obitstream __dest__ ((encoded_size + 7) / 8);
-	hamming::encode (cnt, 4, in, __dest__);
+	hamming::decode (cnt, 4, in, __dest__);
 	ibitstream in2 (__dest__.raw_view (), (encoded_size + 7) / 8);
 	for (_size_t i = 0; i < encoded_size; ++i) {
 		bit c;
@@ -41,33 +42,40 @@ int main () {
 	base_pos p {};
 	p.byteoffset = 0;
 	in2.seekg (p);
-	_size_t decoded_size = hamming::get_decode_size (encoded_size, 4);
+	_size_t decoded_size = hamming::get_encode_size (encoded_size, 4);
 	obitstream __dest2__ ((decoded_size + 7) / 8);
-	hamming::decode (encoded_size, 4, in2, __dest2__);
-	ibitstream in3 (__dest2__.raw_view (), __dest2__.buff_size ());
+	hamming::encode (encoded_size, 4, in2, __dest2__);
+	ibitstream in3 (__dest__.eject (), __dest__.buff_size (), true);
 	char* utf8 = new char[in3.buff_size () * 2 + 2];
-	cp1251_to_utf8 (__dest2__.raw_view (), utf8, in3.buff_size ());
+	cp1251_to_utf8 (in3.raw_view (), utf8, in3.buff_size ());
 	printf ("%s\n", utf8);
 	for (_size_t i = 0; i < decoded_size; ++i) {
 		bit c;
 		in3 >> c;
 		printf ("%d", c);
 	}
-	delete[] utf8;
+	delete[] utf8;*/
 	//printf ("\n%p %p %p\n", in.raw_view (), in2.raw_view (), in3.raw_view ());
 	//printf ("%p %p %p\n", &in, &in2, &in3);
-	/*
+
 	//XOR test
 	ifstream in ("/home/tim/work/Cyber/Math/task.png.encrypted");
 	ofstream out ("/home/tim/work/Cyber/Math/task.png.decrypted");
 	char key[] = "\x89\x50\x4e\x47";
-	printf ("%d %d\n", in.is_open (), out.is_open ());
 	xor_cipher::execute_by_signature (key, sizeof (key) - 1, in, in.buff_size (), out);
-	printf ("sizeof: %lu\n", sizeof (key) - 1);*/
+    in.close ();
+    out.close ();
+    char key2[] = "key3232hello";
+    ifstream in2 ("/home/tim/work/Cyber/Math/task.pdf.encrypted");
+    ofstream out2 ("/home/tim/work/Cyber/Math/task.pdf.decrypted");
+    xor_cipher::execute (key2, sizeof(key2) - 1, in2, in2.buff_size (), out2);
+    in2.close ();
+    out2.close ();
 
-	/*
+
 	//rle test (win1251)
-	obitstream __out__ ((strlen(buff) + 7) / 8);
+    //1010 0101 0010 1100 1010 1110 1110 1110 1010 0100 1011 0111 0010 1001 0000 1000 1100 1010 1100 1000 0100 1011 1001 0001 0110 1100 1010 1101 0110 0101 0101 0110 0110
+	/*obitstream __out__ ((strlen(buff) + 7) / 8);
 	int cnt = 0;
 	for (char *ptr = buff; *ptr != '\00'; ++ptr)
 	{
@@ -75,15 +83,15 @@ int main () {
 			continue;
 		__out__ << (*ptr == '1');
 		++cnt;
-	}
-	ibitstream in(__out__.eject(), (cnt + 7) / 8);
+	}*/
+    /*ibitstream in(__out__.eject (), (cnt + 7) / 8, true);
 	{
 		std::pair<char*, _size_t> res = rle::decode(in, cnt);
 		ibitstream is (res.first, (res.second + 7) / 8);
 		//return 0;
 		bit b;
 		int counter = 0;
-		for (int i = 0; i < res.second; ++i) {
+		for (_size_t i = 0; i < res.second; ++i) {
 			is >> b;
 			printf("%d", b);
 			++counter;
@@ -94,9 +102,27 @@ int main () {
 		}
 		char* result = new char[((res.second + 7) / 8 + 1) * 2];//многобайтовые строки
 		cp1251_to_utf8 (res.first, result, (res.second + 7) / 8);
-		printf("\n%s", result);
+		printf("\n%s\n", result);
 		delete[] result;
-		delete[] res.first;
+        ibitstream is2 (res.first, (res.second + 7) / 8, true);
+        obitstream os2 ((cnt + 7) / 8 + 40);
+        _size_t rest = rle::encode (is2, os2, res.second);
+        ibitstream is3 (os2.eject (), (rest + 7) / 8, true);
+        bool good = true;
+        int j = 0;
+        for (_size_t i = 0; i < rest; ++i) {
+            is3 >> b;
+            printf ("%d", b);
+            while (buff[j] != '0' && buff[j] != '1') {
+                ++j;
+            }
+            good &= ((b + '0') == buff[j]);
+            ++j;
+            if (!good) {
+                printf ("\n%llu, %d: %d BAD, should be %d\n", i, j, b, buff[j - 1] - '0');
+            }
+        }
+        printf ("\nOK:%d\n", good);
 	}*/
 	/*
 	 /Base64 test (win1251)
