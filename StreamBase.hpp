@@ -35,52 +35,6 @@ public:
 	virtual ostream_base& operator<<(char c) = 0;
 	virtual void write(const char* data, _size_t streamsize = FULL) = 0;
 };
-//stringstream НЕ ВЛАДЕЕТ, он копирует чужой буффер (не доверяем).
-class stringstream_base : public iostream_base {
-protected:
-	char* buff = nullptr;
-	char* end = nullptr;
-	char* curr = nullptr;
-public:
-	stringstream_base (char* buffer, _size_t buff_size) {
-		buff = buffer;
-		end = buff + buff_size;
-		curr = buff;
-	}
-	virtual ~stringstream_base() {
-#if VERBOSE_DTORS
-		printf ("~stringstream_base at %p ", this);
-#endif
-		if (buff) {
-			delete[] buff;
-#if VERBOSE_DTORS
-			printf ("%p deleted", buff);
-#endif
-			buff = nullptr;
-		}
-#if VERBOSE_DTORS
-		printf ("\n");
-#endif
-	}
-	bool eof() const {
-		return curr == end;
-	}
-	operator bool() const {
-		return !eof();
-	}
-	_size_t buff_size() const {
-		return end - buff;
-	}
-	const char* raw_view() {
-		return buff;
-	}
-	char* eject () {
-		char* tmp = buff;
-		buff = nullptr;
-		end = nullptr;
-		curr = nullptr;
-		return tmp;
-	}
-};
+
 
 #endif

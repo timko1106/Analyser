@@ -3,9 +3,7 @@
 
 #include "Bitstream.hpp"
 
-obitstream::obitstream(_size_t buffer_size) : obitstream_base (), stringstream_base (new char[buffer_size + 1], buffer_size) {
-	memset(buff, 0, buffer_size);
-}
+obitstream::obitstream(_size_t buffer_size) : obitstream_base (), ostringstream (buffer_size) { }
 
 obitstream_base& obitstream::operator<<(bit value) {
 	if (eof())return *this;
@@ -23,36 +21,11 @@ obitstream_base& obitstream::operator<<(bit value) {
 	return *this;
 }
 
-ostream_base& obitstream::operator<<(char c) {
-	if (eof())return *this;
-	*curr = c;
-	++curr;
-	bitoffset = 0;
-	return *this;
-}
-
-void obitstream::write(const char* data, _size_t streamsize) {
-	if (eof ()) {
-        return;
-    }
-	if (streamsize > (_size_t)(end - curr)) {
-		streamsize = (_size_t)(end - curr);
-	}
-	memcpy(curr, data, streamsize);
-	bitoffset = 0;
-	curr += streamsize;
-}
 
 void obitstream::seekg(const base_pos& p) {
 	if (p.modifiers == EMPTY) {
-		curr = buff + p.byteoffset;
-		if (curr >= end) {
-			curr = end;
-		}
-		if (curr < buff) {
-			curr = buff;
-		}
 		bitoffset = 0;
+		stringstream_base::seekg (p);
 		return;
 	}
 	const pos& _p = (const pos&)p;

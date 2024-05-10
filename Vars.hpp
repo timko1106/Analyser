@@ -11,7 +11,7 @@
 #else
 #define UNIX
 #endif
-#define VERBOSE 1
+#define VERBOSE 0
 #define VERBOSE_DTORS 0
 
 #include <cstddef>
@@ -37,7 +37,7 @@ struct someinfo {
 };
 
 inline _size_t hash_combine (_size_t& seed) {
-    return (_size_t)seed;
+	return (_size_t)seed;
 }
 
 template <typename T, typename... Rest>
@@ -51,8 +51,8 @@ inline _size_t hash_combine (_size_t& seed, const T& v, Rest... rest) {
 	namespace std {\
 		template<> struct hash<type> {\
 			_size_t operator() (const type &t) const {\
-                _size_t ret = 0;\
-                ret = hash_combine (ret, __VA_ARGS__);\
+				_size_t ret = 0;\
+				ret = hash_combine (ret, __VA_ARGS__);\
 				return ret;\
 			}\
 		};\
@@ -63,7 +63,7 @@ MAKE_HASHABLE (someinfo, t.__id, t.file, t.function, t.line);
 
 inline _size_t proxy_file_name_generator (const char* file, const char* function, int line) {
 	_size_t __hash = std::hash<someinfo>{}({std::this_thread::get_id(), file, function, line});
-    hash_combine (__hash, time (NULL));
+	hash_combine (__hash, time (NULL));
 	//printf ("%llu\n", __hash);
 	return __hash;
 }

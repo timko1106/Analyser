@@ -11,7 +11,7 @@ _size_t rle::encode(ibitstream_base& in, obitstream_base& out, _size_t streamsiz
 	int counter = 1;
 	_size_t res{ 1 };
 #if VERBOSE
-    printf ("First: %d\n", current);
+	printf ("First: %d\n", current);
 #endif
 	for (_size_t j = 1; j < streamsize; ++j) {
 		bit next;
@@ -22,7 +22,7 @@ _size_t rle::encode(ibitstream_base& in, obitstream_base& out, _size_t streamsiz
 		}
 		_size_t offset = (_size_t)log2(counter);
 #if VERBOSE
-        printf ("Series: %d, offset: %llu\n", counter, offset);
+		printf ("Series: %d, offset: %llu\n", counter, offset);
 #endif
 		res += 2ull * offset + 1;
 		for (_size_t i = 0; i < offset; ++i) {
@@ -36,12 +36,12 @@ _size_t rle::encode(ibitstream_base& in, obitstream_base& out, _size_t streamsiz
 	}
 	if (counter) {
 #if VERBOSE
-        printf ("Limit: %d\n", counter);
+		printf ("Limit: %d\n", counter);
 #endif
 		_size_t offset = (_size_t)log2(counter);
 		res += 2 * offset + 1;
 #if VERBOSE
-        printf ("Offset: %llu, final length: %llu\n", offset, res);
+		printf ("Offset: %llu, final length: %llu\n", offset, res);
 #endif
 		for (_size_t i = 0; i < offset; ++i) {
 			out << (bit)(0);

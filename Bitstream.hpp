@@ -5,6 +5,7 @@
 #include <cstring>
 #include <cstdio>
 #include "StreamBase.hpp"
+#include "StringStream.hpp"
 
 #ifdef __WINAPI_ENABLED__
 #define _CRT_SECURE_NO_WARNINGS
@@ -16,7 +17,7 @@ struct pos : public base_pos {
 	long long bitoffset;
 	pos() : bitoffset(0) {
 		base_pos::modifiers = BIT_OFFSET;
-    }
+	}
 	pos(long long byteoffset, long long bitoffset) : bitoffset(bitoffset) {
 		base_pos::modifiers = BIT_OFFSET;
 		base_pos::byteoffset = byteoffset;
@@ -36,9 +37,9 @@ public:
 	virtual istream_base& operator>>(char& c) = 0;
 	virtual void read(char* data, _size_t streamsize) = 0;
 };
-class ibitstream : public ibitstream_base, public stringstream_base {
+class ibitstream : public ibitstream_base, public istringstream {
 public:
-    ibitstream (const char* value, _size_t buffer = FULL);
+	ibitstream (const char* value, _size_t buffer = FULL);
 	ibitstream (char* value, _size_t buffer = FULL, bool own = false);
 	~ibitstream () {
 #if VERBOSE_DTORS
@@ -46,8 +47,14 @@ public:
 #endif
 	}
 	ibitstream_base& operator>>(bit& value) override;
-	istream_base& operator>>(char& c) override;
-	void read(char* data, _size_t streamsize) override;
+	istream_base& operator>>(char& c) override {
+		bitoffset = 0;
+		return istringstream::operator>> (c);
+	}
+	void read(char* data, _size_t streamsize) override {
+		bitoffset = 0;
+		istringstream::read (data, streamsize);
+	}
 	void seekg(const base_pos& p) override;
 	base_pos* tellg() const override;
 	bool eof() const override {
@@ -74,7 +81,7 @@ public:
 	virtual ostream_base& operator<< (char c) = 0;
 	virtual void write(const char* data, _size_t streamsize = FULL) = 0;
 };
-class obitstream : public obitstream_base, public stringstream_base {
+class obitstream : public obitstream_base, public ostringstream {
 public:
 	obitstream (_size_t buffer_size);
 	~obitstream () {
@@ -83,17 +90,23 @@ public:
 #endif
 	}
 	obitstream_base& operator<<(bit value) override;
-	ostream_base& operator<< (char c) override;
-	void write(const char* data, _size_t streamsize = FULL) override;
+	ostream_base& operator<< (char c) override {
+		bitoffset = 0;
+		return ostringstream::operator<< (c);
+	}
+	void write(const char* data, _size_t streamsize = FULL) override {
+		bitoffset = 0;
+		ostringstream::write (data, streamsize);
+	}
 	bool eof() const override {
 		return stringstream_base::eof();
-    }
+	}
 	_size_t buff_size() const override {
 		return stringstream_base::buff_size();
-    }
+	}
 	operator bool() const {
 		return stringstream_base::operator bool();
-    }
+	}
 	void seekg(const base_pos& p) override;
 	base_pos* tellg() const override;
 };
@@ -106,7 +119,7 @@ public:
 	obitstream_base& operator<< (bit value) override {
 		handler(value);
 		return *this;
-    }
+	}
 	ostream_base& operator<< (char c) override {
 		unsigned char _c = c;
 		for (unsigned char i = 0; i < 8; --i) {
@@ -117,25 +130,25 @@ public:
 	void write (const char* data, _size_t streamsize = FULL) override {
 		if (streamsize == FULL) {
 			streamsize = strlen(data);
-        }
+		}
 		while (streamsize--) {
 			(*this) << data[streamsize];
-        }
+		}
 	}
 	bool eof() const override {
 		return false;
-    }
+	}
 	_size_t buff_size() const override {
 		return FULL;
-    }
+	}
 	operator bool() const {
 		return true;
-    }
-    //ignore
+	}
+	//ignore
 	void seekg (const base_pos& p) override { }
 	base_pos* tellg() const override {
 		return nullptr;
-    }
+	}
 };
 
 #endif

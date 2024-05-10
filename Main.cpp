@@ -1,13 +1,40 @@
 #include "Base64.hpp"
 #include "Bitstream.hpp"
+#include "StringStream.hpp"
 #include "RLE.hpp"
 #include "FileStream.hpp"
 #include "Xor.hpp"
 #include "Hamming.hpp"
+#include "AES.hpp"
 
 const _size_t BUFF_SIZE = 10000;
 
+bool isLittleEndian()
+{
+	short int number = 0x1;
+	char *numPtr = (char*)&number;
+	return (numPtr[0] == 1);
+}
+
 int main () {
+	printf ("%s\n", isLittleEndian() ? "LE" : "BE");
+	unsigned char cipher_key[16] = {0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c};
+	//unsigned char cipher_key[] = {0x8e, 0x73, 0xb0, 0xf7, 0xda, 0x0e, 0x64, 0x52, 0xc8, 0x10, 0xf3, 0x2b, 0x80, 0x90, 0x79, 0xe5, 0x62, 0xf8, 0xea, 0xd2, 0x52, 0x2c, 0x6b, 0x7b};
+	//unsigned char cipher_key[] = {0x60, 0x3d, 0xeb, 0x10, 0x15, 0xca, 0x71, 0xbe, 0x2b, 0x73, 0xae, 0xf0, 0x85, 0x7d, 0x77, 0x81, 0x1f, 0x35, 0x2c, 0x07, 0x3b, 0x61, 0x08, 0xd7, 0x2d, 0x98, 0x10, 0xa3, 0x09, 0x14, 0xdf, 0xf4};
+	//char text[BUFF_SIZE] = "HELLO!!!";
+	unsigned char text[] = {0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d, 0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34};
+	istringstream in ((char*)text, sizeof (text));
+	ostringstream out (in.buff_size () * 4);
+	_size_t result = aes::encrypt (in, out, sizeof (text), (char*)cipher_key);
+	printf ("Dest size: %llu\n", result);
+	ibitstream in2 (out.eject (), result, true);
+	bit c;
+	while (in2) {
+		in2 >> c;
+		printf ("%d", c);
+	}
+	printf ("\n");
+
 	#ifdef __WINAPI_ENABLED__
 	//SetConsoleOutputCP(CP_UTF8);//Он работает только с UTF16, не многобайтными. Так что смысла нет
 	SetConsoleCP(1251);
@@ -25,9 +52,9 @@ int main () {
 		__out__ << (*ptr == '1');
 		++cnt;
 	}
-    printf ("%d\n", cnt);*/
+	printf ("%d\n", cnt);*/
 	//11011111 00100001 code->decode
-    //101010010000011 000100010111111 100101111011101 011010011101010 100010111111001 000100100000011 011001100111100 111101010100000 111011001100111 010000000111101 000101111000000 000111111100000 decode->code, или 001010011010111 010000010111000 000001101100111 111101010001110 001011000000001
+	//101010010000011 000100010111111 100101111011101 011010011101010 100010111111001 000100100000011 011001100111100 111101010100000 111011001100111 010000000111101 000101111000000 000111111100000 decode->code, или 001010011010111 010000010111000 000001101100111 111101010001110 001011000000001
 	/*ibitstream in(__out__.eject (), (cnt + 7) / 8, true);
 	_size_t encoded_size = hamming::get_decode_size (cnt, 4);
 	obitstream __dest__ ((encoded_size + 7) / 8);
@@ -59,22 +86,22 @@ int main () {
 	//printf ("%p %p %p\n", &in, &in2, &in3);
 
 	//XOR test
-	ifstream in ("/home/tim/work/Cyber/Math/task.png.encrypted");
+	/*ifstream in ("/home/tim/work/Cyber/Math/task.png.encrypted");
 	ofstream out ("/home/tim/work/Cyber/Math/task.png.decrypted");
 	char key[] = "\x89\x50\x4e\x47";
 	xor_cipher::execute_by_signature (key, sizeof (key) - 1, in, in.buff_size (), out);
-    in.close ();
-    out.close ();
-    char key2[] = "key3232hello";
-    ifstream in2 ("/home/tim/work/Cyber/Math/task.pdf.encrypted");
-    ofstream out2 ("/home/tim/work/Cyber/Math/task.pdf.decrypted");
-    xor_cipher::execute (key2, sizeof(key2) - 1, in2, in2.buff_size (), out2);
-    in2.close ();
-    out2.close ();
+	in.close ();
+	out.close ();
+	char key2[] = "key3232hello";
+	ifstream in2 ("/home/tim/work/Cyber/Math/task.pdf.encrypted");
+	ofstream out2 ("/home/tim/work/Cyber/Math/task.pdf.decrypted");
+	xor_cipher::execute (key2, sizeof(key2) - 1, in2, in2.buff_size (), out2);
+	in2.close ();
+	out2.close ();*/
 
 
 	//rle test (win1251)
-    //1010 0101 0010 1100 1010 1110 1110 1110 1010 0100 1011 0111 0010 1001 0000 1000 1100 1010 1100 1000 0100 1011 1001 0001 0110 1100 1010 1101 0110 0101 0101 0110 0110
+	//1010 0101 0010 1100 1010 1110 1110 1110 1010 0100 1011 0111 0010 1001 0000 1000 1100 1010 1100 1000 0100 1011 1001 0001 0110 1100 1010 1101 0110 0101 0101 0110 0110
 	/*obitstream __out__ ((strlen(buff) + 7) / 8);
 	int cnt = 0;
 	for (char *ptr = buff; *ptr != '\00'; ++ptr)
@@ -84,7 +111,7 @@ int main () {
 		__out__ << (*ptr == '1');
 		++cnt;
 	}*/
-    /*ibitstream in(__out__.eject (), (cnt + 7) / 8, true);
+	/*ibitstream in(__out__.eject (), (cnt + 7) / 8, true);
 	{
 		std::pair<char*, _size_t> res = rle::decode(in, cnt);
 		ibitstream is (res.first, (res.second + 7) / 8);
@@ -104,25 +131,25 @@ int main () {
 		cp1251_to_utf8 (res.first, result, (res.second + 7) / 8);
 		printf("\n%s\n", result);
 		delete[] result;
-        ibitstream is2 (res.first, (res.second + 7) / 8, true);
-        obitstream os2 ((cnt + 7) / 8 + 40);
-        _size_t rest = rle::encode (is2, os2, res.second);
-        ibitstream is3 (os2.eject (), (rest + 7) / 8, true);
-        bool good = true;
-        int j = 0;
-        for (_size_t i = 0; i < rest; ++i) {
-            is3 >> b;
-            printf ("%d", b);
-            while (buff[j] != '0' && buff[j] != '1') {
-                ++j;
-            }
-            good &= ((b + '0') == buff[j]);
-            ++j;
-            if (!good) {
-                printf ("\n%llu, %d: %d BAD, should be %d\n", i, j, b, buff[j - 1] - '0');
-            }
-        }
-        printf ("\nOK:%d\n", good);
+		ibitstream is2 (res.first, (res.second + 7) / 8, true);
+		obitstream os2 ((cnt + 7) / 8 + 40);
+		_size_t rest = rle::encode (is2, os2, res.second);
+		ibitstream is3 (os2.eject (), (rest + 7) / 8, true);
+		bool good = true;
+		int j = 0;
+		for (_size_t i = 0; i < rest; ++i) {
+			is3 >> b;
+			printf ("%d", b);
+			while (buff[j] != '0' && buff[j] != '1') {
+				++j;
+			}
+			good &= ((b + '0') == buff[j]);
+			++j;
+			if (!good) {
+				printf ("\n%llu, %d: %d BAD, should be %d\n", i, j, b, buff[j - 1] - '0');
+			}
+		}
+		printf ("\nOK:%d\n", good);
 	}*/
 	/*
 	 /Base64 test (win1251)

@@ -22,7 +22,7 @@ char* base64::encode(const char* msg, _size_t size) {
 	unsigned char inblock[3] = {}, outblock[4] = {};
 	_size_t used = 0;
 	char* caret = result;
-    int block_length;
+	int block_length;
 	while (used < size) {
 		block_length = 0;
 		for (int i = 0; i < 3; ++i) {
