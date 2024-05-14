@@ -90,52 +90,52 @@ void stringstream_base::seekg (const base_pos& to) {
 	curr = curr + to.byteoffset;
 }
 void stringstream_base::resize (_size_t new_size) {
-    if (buff == nullptr) {
-        if (new_size == 0) {
-            new_size = DEFAULT_SIZE;
-        }
-        buff = new char[new_size];
-        memset (buff, 0, new_size);
-        curr = buff;
-        end = buff + new_size;
-        return;
-    }
-    if (buff_size () >= new_size) {
-        return;
-    }
-    _size_t offset = curr - buff;
-    _size_t old_size = end - buff;
-    char* new_buff = new char[new_size];
-    memcpy (new_buff, buff, old_size);
-    memset (new_buff + old_size, 0, new_size - old_size);
-    buff = new_buff;
-    end = buff + new_size;
-    curr = buff + offset;
+	if (buff == nullptr) {
+		if (new_size == 0) {
+			new_size = DEFAULT_SIZE;
+		}
+		buff = new char[new_size];
+		memset (buff, 0, new_size);
+		curr = buff;
+		end = buff + new_size;
+		return;
+	}
+	if (buff_size () >= new_size) {
+		return;
+	}
+	_size_t offset = curr - buff;
+	_size_t old_size = end - buff;
+	char* new_buff = new char[new_size];
+	memcpy (new_buff, buff, old_size);
+	memset (new_buff + old_size, 0, new_size - old_size);
+	buff = new_buff;
+	end = buff + new_size;
+	curr = buff + offset;
 }
 void stringstream_base::reset  () {
-    base_pos p {};
-    p.byteoffset = 0;
-    p.modifiers = EMPTY;
-    seekg (p);
+	base_pos p {};
+	p.byteoffset = 0;
+	p.modifiers = EMPTY;
+	seekg (p);
 }
 void stringstream_base::own (char* buffer, _size_t new_size) {
-    if (buff) {
-        delete[] buff;
-    }
-    buff = buffer;
-    end = buff + new_size;
-    curr = buff;
+	if (buff) {
+		delete[] buff;
+	}
+	buff = buffer;
+	end = buff + new_size;
+	curr = buff;
 }
 void stringstream_base::reload (_size_t new_size) {
-    if (new_size == 0) {
-        new_size = DEFAULT_SIZE;
-    }
-    if (buff) {
-        delete[] buff;
-    }
-    buff = new char[new_size];
-    curr = buff;
-    end = buff + new_size;
+	if (new_size == 0) {
+		new_size = DEFAULT_SIZE;
+	}
+	if (buff) {
+		delete[] buff;
+	}
+	buff = new char[new_size];
+	curr = buff;
+	end = buff + new_size;
 }
 istringstream::istringstream (char* buffer, _size_t buffer_size, bool use) : stringstream_base (buffer, buffer_size, use) { }
 istringstream::~istringstream () {

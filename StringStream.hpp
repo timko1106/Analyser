@@ -23,13 +23,13 @@ public:
 	char* eject ();
 	virtual base_pos* tellg () const override;
 	virtual void seekg (const base_pos& to) override;
-    //Изменение размера с СОХРАНЕНИЕМ старых оффсетов и данных. Если размер меньше - игнорирует
-    void resize (_size_t new_size);
-    //Индексы в 0
-    void reset ();
-    //Безвозвратное удаление массива.
-    void reload (_size_t new_size);
-    void own (char* buffer, _size_t buff_size);
+	//Изменение размера с СОХРАНЕНИЕМ старых оффсетов и данных. Если размер меньше - игнорирует
+	void resize (_size_t new_size);
+	//Индексы в 0
+	void reset ();
+	//Безвозвратное удаление массива.
+	void reload (_size_t new_size);
+	void own (char* buffer, _size_t buff_size);
 };
 
 class istringstream : public stringstream_base, public istream_base {
