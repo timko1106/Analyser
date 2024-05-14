@@ -39,6 +39,10 @@ const aes::byte InvSBOX[256] = {
 		0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d};
 const _size_t Nb = aes::STATE_SIZE;
 
+_size_t aes::output_size (_size_t input_size) {
+    return (input_size + aes::BLOCK_SIZE - 1) / aes::BLOCK_SIZE * aes::BLOCK_SIZE;
+}
+
 void add_round_key (aes::byte* state, aes::byte* key) {
 	for (_size_t i = 0; i < Nb; ++i) {
 		for (_size_t j = 0; j < aes::WORD_SIZE; ++j) {
@@ -102,87 +106,39 @@ void mix_columns (aes::byte* state) {
 	}
 }
 
+#if VERBOSE
+#define VERBOSE_PRINTING(...) \
+    printf (__VA_ARGS__);\
+    for (_size_t i = 0; i < aes::BLOCK_SIZE; ++i) { \
+        printf ("%02x", (unsigned)state[i]); \
+    } \
+    printf ("\n");
+#else
+#define VERBOSE_PRINTING(...)
+#endif
+
 void block_encrypt (aes::byte* in, aes::byte* out, aes::byte* key, _size_t Nr) {
 	aes::byte* state = out;
 	memcpy (state, in, aes::BLOCK_SIZE);
-#if VERBOSE
-	printf ("Input: ");
-	for (_size_t i = 0; i < aes::BLOCK_SIZE; ++i) {
-		printf ("%02x", (unsigned)state[i]);
-	}
-	printf ("\n");
-#endif
-
+    VERBOSE_PRINTING ("Input: ");
 	add_round_key (state, key);
-#if VERBOSE
-	printf ("Added round keys\n");
-	for (_size_t i = 0; i < aes::BLOCK_SIZE; ++i) {
-		printf ("%02x", (unsigned)state[i]);
-	}
-	printf ("\n");
-#endif
+    VERBOSE_PRINTING ("Added round keys\n");
 	for (_size_t i = 1; i < Nr; ++i) {
-#if VERBOSE
-		printf ("%llu\nAfter sub_bytes:\n", i);
-#endif
 		sub_bytes (state);
-#if VERBOSE
-		for (_size_t i = 0; i < aes::BLOCK_SIZE; ++i) {
-			printf ("%02x", (unsigned)state[i]);
-		}
-		printf ("\n");
-#endif
+        VERBOSE_PRINTING ("%llu\nAfter sub_bytes:\n", i);
 		shift_rows (state);
-#if VERBOSE
-		printf ("After shift:\n");
-		for (_size_t i = 0; i < aes::BLOCK_SIZE; ++i) {
-			printf ("%02x", (unsigned)state[i]);
-		}
-		printf ("\n");
-#endif
+        VERBOSE_PRINTING ("After shift:\n");
 		mix_columns (state);
-#if VERBOSE
-		printf ("After mixing:\n");
-		for (_size_t i = 0; i < aes::BLOCK_SIZE; ++i) {
-			printf ("%02x", (unsigned)state[i]);
-		}
-		printf ("\n");
-#endif
+        VERBOSE_PRINTING ("After mixing:\n");
 		add_round_key (state, key + aes::WORD_SIZE * i * Nb);
-#if VERBOSE
-		printf ("Added round keys\n");
-		for (_size_t i = 0; i < aes::BLOCK_SIZE; ++i) {
-			printf ("%02x", (unsigned)state[i]);
-		}
-		printf ("\n");
-#endif
+        VERBOSE_PRINTING ("Added round keys\n");
 	}
-#if VERBOSE
-	printf ("After sub_bytes:\n");
-#endif
 	sub_bytes (state);
-#if VERBOSE
-	for (_size_t i = 0; i < aes::BLOCK_SIZE; ++i) {
-		printf ("%02x", (unsigned)state[i]);
-	}
-	printf ("\n");
-#endif
+    VERBOSE_PRINTING ("After sub_bytes:\n");
 	shift_rows (state);
-#if VERBOSE
-	printf ("After shift:\n");
-	for (_size_t i = 0; i < aes::BLOCK_SIZE; ++i) {
-		printf ("%02x", (unsigned)state[i]);
-	}
-	printf ("\n");;
-#endif
+    VERBOSE_PRINTING ("After shift:\n");
 	add_round_key (state, key + aes::WORD_SIZE * Nr * Nb);
-#if VERBOSE
-	printf ("Final %d:\n", VERBOSE);
-	for (_size_t i = 0; i < aes::BLOCK_SIZE; ++i) {
-		printf ("%02x", (unsigned)state[i]);
-	}
-	printf ("\n");
-#endif
+    VERBOSE_PRINTING ("Final\n");
 }
 constexpr _size_t RC_LIMIT = 40;
 constexpr std::array<aes::byte, RC_LIMIT> rc () {
@@ -277,28 +233,26 @@ _size_t aes::encrypt (istream_base& in, ostream_base& out, _size_t streamsize, c
 	delete[] rounds;
 	return (streamsize + aes::BLOCK_SIZE - 1) / aes::BLOCK_SIZE * aes::BLOCK_SIZE;
 }
-
-void inv_sub_bytes (aes::word* state) {
+void inv_sub_bytes (aes::byte* state) {
 	for (_size_t i = 0; i < Nb; ++i) {
-		aes::byte* ptr = (aes::byte*)state;
 		for (_size_t j = 0; j < aes::WORD_SIZE; ++j) {
-			*ptr = InvSBOX[*ptr];
-			++ptr;
+			*state = InvSBOX[*state];
+			++state;
 		}
-		++state;
 	}
 }
-void inv_shift_rows (aes::word* state) {
+void inv_shift_rows (aes::byte* state) {
 	aes::byte tmp[aes::WORD_SIZE] = {};
-	for (_size_t i = 0; i < Nb; ++i) {
-		*((aes::word*)tmp) = *state;
-		aes::byte* ptr = (aes::byte*)state;
-		for (_size_t j = 0; j < aes::WORD_SIZE; ++j) {
-			ptr[j] = tmp[(j + i) % aes::WORD_SIZE];
+	for (_size_t i = 0; i < aes::WORD_SIZE; ++i) {
+		for (_size_t j = 0; j < Nb; ++j) {
+			tmp[j] = state[i + aes::WORD_SIZE * j];
 		}
-		++state;
+		for (_size_t j = 0; j < Nb; ++j) {
+			state[i + aes::WORD_SIZE * j] = tmp[(j - i + aes::WORD_SIZE) % aes::WORD_SIZE];
+		}
 	}
 }
+
 constexpr aes::byte mul (aes::byte a, aes::byte b) {
 	aes::byte res = 0;
 	while (a && b) {
@@ -306,47 +260,97 @@ constexpr aes::byte mul (aes::byte a, aes::byte b) {
 			res = add (res, a);
 		}
 		a = mul2 (a);
-		if (a >> 7) {
-			a = add (a, 0x1B);
-		}
 		b >>= 1;
 		//a * b = (a * 2) * (b / 2) + a * (b % 2)
 	}
 	return res;
 }
 
-void inv_mix_columns (aes::word* state) {
+void inv_mix_columns (aes::byte* state) {
 	aes::byte block[aes::WORD_SIZE] = {};
-	for (_size_t i = 0; i < Nb; ++i) {
-		//[{0b},{0d},{09},{0e}]
+	for (_size_t i = 0; i < aes::WORD_SIZE; ++i) {
+        //[{0b},{0d},{09},{0e}]
 		//s0'=({0e}*s0)+({0b}*s1)+({0d}*s2)+({09}*s3)
 		//s1'=({0e}*s1)+({0b}*s2)+({0d}*s3)+({09}*s0)
 		//s1'=({0e}*s2)+({0b}*s3)+({0d}*s0)+({09}*s1)
 		//s1'=({0e}*s3)+({0b}*s0)+({0d}*s1)+({09}*s2)
-
-		aes::byte* ptr = (aes::byte*)state;
-		block[0] = mul (ptr[0], 0x0e) ^ mul (ptr[1], 0x0b) ^ mul (ptr[2], 0x0d) ^ mul (ptr[3], 0x09);
-		block[1] = mul (ptr[1], 0x0e) ^ mul (ptr[2], 0x0b) ^ mul (ptr[3], 0x0d) ^ mul (ptr[0], 0x09);
-		block[2] = mul (ptr[2], 0x0e) ^ mul (ptr[3], 0x0b) ^ mul (ptr[0], 0x0d) ^ mul (ptr[1], 0x09);
-		block[3] = mul (ptr[3], 0x0e) ^ mul (ptr[0], 0x0b) ^ mul (ptr[1], 0x0d) ^ mul (ptr[2], 0x09);
-		*state = *((aes::word*)block);
-		++state;
+		for (_size_t j = 0; j < Nb; ++j) {
+			block[j] = state[i * aes::WORD_SIZE + j];
+		}
+		state[i * aes::WORD_SIZE] = mul (block[0], 0x0e) ^ mul (block[1], 0x0b) ^ mul (block[2], 0x0d) ^ mul (block[3], 0x09);
+		state[i * aes::WORD_SIZE + 1] = mul (block[1], 0x0e) ^ mul (block[2], 0x0b) ^ mul (block[3], 0x0d) ^ mul (block[0], 0x09);
+		state[i * aes::WORD_SIZE + 2] = mul (block[2], 0x0e) ^ mul (block[3], 0x0b) ^ mul (block[0], 0x0d) ^ mul (block[1], 0x09);
+		state[i * aes::WORD_SIZE + 3] = mul (block[3], 0x0e) ^ mul (block[0], 0x0b) ^ mul (block[1], 0x0d) ^ mul (block[2], 0x09);
 	}
 }
 
 void block_decrypt (aes::byte* in, aes::byte* out, aes::byte* key, _size_t Nr) {
-	aes::word* state = (aes::word*)out;
+	aes::byte* state = out;
 	memcpy (state, in, aes::BLOCK_SIZE);
-	add_round_key ((aes::byte*)state, key + Nr * Nb);
+    VERBOSE_PRINTING ("Input: ");
+	add_round_key (state, key + aes::WORD_SIZE * Nr * Nb);
+    VERBOSE_PRINTING ("Added round key:\n");
 	for (_size_t i = Nr - 1; i >= 1; --i) {
+        inv_sub_bytes (state);
+        VERBOSE_PRINTING ("%llu\nAfter inv_sub_bytes:\n", i);
 		inv_shift_rows (state);
-		inv_sub_bytes (state);
-		add_round_key ((aes::byte*)state, key + Nb * i);
+        VERBOSE_PRINTING ("After inv_shift_rows:\n");
 		inv_mix_columns (state);
+        VERBOSE_PRINTING ("After inv_mix_columns:\n");
+        add_round_key (state, key + aes::WORD_SIZE * i * Nb);
+        VERBOSE_PRINTING ("Added round key:\n");
 	}
 	inv_sub_bytes (state);
+    VERBOSE_PRINTING ("After inv_sub_bytes:\n");
 	inv_shift_rows (state);
-	add_round_key ((aes::byte*)state, key);
+    VERBOSE_PRINTING ("After inv_shift_rows:\n");
+	add_round_key (state, key);
+    VERBOSE_PRINTING ("Final:\n");
 }
+#undef VERBOSE_PRINTING
+void key_expansion_decrypt (aes::byte* key, _size_t Nk, aes::byte* rounds, _size_t Nr) {
+    key_expansion (key, Nk, rounds, Nr);
+    for (_size_t i = 1; i <= Nr - 1; ++i) {
+        inv_mix_columns (rounds + aes::WORD_SIZE * i * Nb);
+    }
+#if VERBOSE
+    printf ("Key:");
+    for (_size_t i = 0; i < aes::WORD_SIZE * Nb * (Nr + 1); ++i) {
+        printf ("%02x", (unsigned)rounds[i]);
+    }
+    printf ("\n");
+#endif
+}
+_size_t aes::decrypt (istream_base& in, ostream_base& out, _size_t streamsize, char* key, _size_t key_size) {
+    _size_t Nk = key_size, Nr;
+	switch (Nk) {
+		case KEY_SIZE_1:
+			Nr = ROUNDS_1;
+			break;
+		case KEY_SIZE_2:
+			Nr = ROUNDS_2;
+			break;
+		case KEY_SIZE_3:
+			Nr = ROUNDS_3;
+			break;
+		default:
+			return 0;
+	}
+#if VERBOSE
+	printf ("Nk: %llu, Nr: %llu, streamsize: %llu, result: %llu\n", Nk, Nr, streamsize, (streamsize + aes::BLOCK_SIZE - 1) / aes::BLOCK_SIZE * aes::BLOCK_SIZE);
+#endif
+	byte* rounds = new byte[WORD_SIZE * Nb * (Nr + 1)];
+	aes::byte in_block[aes::BLOCK_SIZE] {}, out_block[aes::BLOCK_SIZE] {};
+	key_expansion_decrypt ((byte*)key, Nk, rounds, Nr);
+	for (_size_t i = 0; i < (streamsize + aes::BLOCK_SIZE - 1) / aes::BLOCK_SIZE; ++i) {
+		in.read ((char*)in_block, aes::BLOCK_SIZE);
+		block_decrypt (in_block, out_block, rounds, Nr);
+		out.write ((char*)out_block, aes::BLOCK_SIZE);
+	}
+	delete[] rounds;
+	return (streamsize + aes::BLOCK_SIZE - 1) / aes::BLOCK_SIZE * aes::BLOCK_SIZE;
+
+}
+
 
 #endif

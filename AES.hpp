@@ -19,6 +19,7 @@ namespace aes {
 	const _size_t WORD_SIZE = 4;
 	using word = uint32_t;
 	const _size_t BLOCK_SIZE = WORD_SIZE * STATE_SIZE;
+    _size_t output_size (_size_t input_size);
 	_size_t encrypt (istream_base& in, ostream_base& out, _size_t streamsize, char* key, _size_t key_size = KEY_SIZE);
 	_size_t decrypt (istream_base& in, ostream_base& out, _size_t streamsize, char* key, _size_t key_size = KEY_SIZE);
 }

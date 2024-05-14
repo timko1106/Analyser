@@ -13,6 +13,7 @@
 #endif
 #define VERBOSE 0
 #define VERBOSE_DTORS 0
+#define INCLUDE_ZERO_TERMINATOR true
 
 #include <cstddef>
 #include <cstring>
