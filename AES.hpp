@@ -5,7 +5,7 @@
 #include "StreamBase.hpp"
 
 #include <cstdint>
-
+//https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf
 namespace aes {
 	const _size_t KEY_SIZE_1 = 4;
 	const _size_t KEY_SIZE_2 = 6;
