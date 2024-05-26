@@ -21,7 +21,11 @@ hamming.o: vars.o streams.o Hamming.hpp Hamming.cpp
 	$(CXX) -o hamming.o -c Hamming.cpp $(CXXFLAGS)
 aes.o: vars.o streams.o AES.hpp AES.cpp
 	$(CXX) -o aes.o -c AES.cpp $(CXXFLAGS)
-main.o: vars.o streams.o base64.o rle.o xor.o hamming.o Main.cpp
+long_math.o: vars.o LongMath.hpp LongMath.cpp
+	$(CXX) -o long_math.o -c LongMath.cpp $(CXXFLAGS)
+rsa.o: vars.o long_math.o RSA.hpp RSA.cpp
+	$(CXX) -o rsa.o -c RSA.cpp $(CXXFLAGS)
+main.o: vars.o streams.o base64.o rle.o xor.o hamming.o aes.o long_math.o rsa.o Main.cpp
 	$(CXX) -o main.o -c Main.cpp $(CXXFLAGS)
-${TARGET}: vars.o streams.o rle.o xor.o hamming.o aes.o main.o
-	$(CXX) -o ${TARGET} vars.o streams.o rle.o xor.o hamming.o aes.o main.o $(CXXFLAGS)
+${TARGET}: vars.o streams.o rle.o xor.o hamming.o aes.o long_math.o rsa.o main.o
+	$(CXX) -o ${TARGET} vars.o streams.o rle.o xor.o hamming.o aes.o long_math.o rsa.o main.o -lgmp -lgmpxx $(CXXFLAGS)
