@@ -13,7 +13,7 @@ namespace rsa {
 		//Через китайскую теорему об остатках
 		long_number_t m1 = pow_prime_m (c, dp, p);
 		long_number_t m2 = pow_prime_m (c, dq, q);
-		long_number_t h = (q_inv * ((m2 - m1) % p)) % p;
+		long_number_t h = (q_inv * ((m1 - m2) % p)) % p;
 		long_number_t m = (m2 + h * q) % n;
 		return m;
 	}
