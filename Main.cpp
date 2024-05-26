@@ -6,10 +6,29 @@
 #include "Xor.hpp"
 #include "Hamming.hpp"
 #include "AES.hpp"
+#include "LongMath.hpp"
+#include "RSA.hpp"
 
 const _size_t BUFF_SIZE = 10000;
 
 int main () {
+	const _size_t KEY_SIZE_RSA = 2048;
+	std::pair<rsa::private_key_t, rsa::public_key_t> keys = rsa::generate (KEY_SIZE_RSA);
+	const int TOTAL = 100;
+	int fast_bad = 0, long_bad = 0;
+	for (int i = 0; i < TOTAL; ++i) {
+		long_number_t ex = gen_randprime (KEY_SIZE_RSA / 8);
+		long_number_t enc = keys.second.encrypt (ex);
+		long_number_t dec1 = keys.first.decrypt_fast (enc), dec2 = keys.first.decrypt_long (enc);
+		fast_bad += (ex != dec1);
+		long_bad += (ex != dec2);
+		if (i * 10 % TOTAL == 0) {
+			printf ("%d\n", i * 100 / TOTAL);
+		}
+	}
+	printf ("Fast fails: %d, long fails: %d, total: %d", fast_bad, long_bad, TOTAL);
+	/*
+	//AES tests
 	//unsigned char cipher_key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
 	//unsigned char cipher_key[16] = {0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c};
 	//unsigned char cipher_key[] = {0x8e, 0x73, 0xb0, 0xf7, 0xda, 0x0e, 0x64, 0x52, 0xc8, 0x10, 0xf3, 0x2b, 0x80, 0x90, 0x79, 0xe5, 0x62, 0xf8, 0xea, 0xd2, 0x52, 0x2c, 0x6b, 0x7b};
@@ -31,7 +50,7 @@ int main () {
 		printf ("%d", c);
 	}
 	printf ("\n");
-	printf ("%.*s\n", (int)strlen (text), in2.raw_view ());
+	printf ("%.*s\n", (int)strlen (text), in2.raw_view ());*/
 
 	#ifdef __WINAPI_ENABLED__
 	//SetConsoleOutputCP(CP_UTF8);//Он работает только с UTF16, не многобайтными. Так что смысла нет

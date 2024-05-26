@@ -145,7 +145,7 @@ public:
 		return true;
 	}
 	//ignore
-	void seekg (const base_pos& p) override { }
+	void seekg (const base_pos& p __attribute__((unused))) override { }
 	base_pos* tellg() const override {
 		return nullptr;
 	}
