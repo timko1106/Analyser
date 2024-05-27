@@ -6,6 +6,6 @@
 #include "StringStream.cpp"
 #include "BitstreamInput.cpp"
 #include "BitstreamOutput.cpp"
-#include "FileStream.hpp"
+#include "FileStream.cpp"
 
 #endif

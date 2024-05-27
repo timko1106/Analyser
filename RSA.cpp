@@ -18,20 +18,24 @@ namespace rsa {
 		return m;
 	}
 	long_number_t private_key_t::decrypt_long (const long_number_t& c) {
-		return pow_prime_m (c, d, n);
+		return pow_m (c, d, n);
 	}
 	public_key_t::public_key_t (const long_number_t& n, int e) : e (e), n (n) { }
 	long_number_t public_key_t::encrypt (const long_number_t& m) {
-		return pow_prime_m (m, e, n);
+		return pow_m (m, e, n);
 	}
 	std::pair<private_key_t, public_key_t> generate (_size_t bits) {
-		long_number_t p = gen_randprime (bits / 8, true), q = gen_randprime (bits / 8, true);
+		long_number_t p = gen_randprime (bits / 16, true), q = gen_randprime (bits / 16, true);
+		while (q == p) {
+			q = gen_randprime (bits / 16, true);
+		}
 		long_number_t n = p * q;
-		long_number_t phi = lcm ((p - 1), (q - 1));//В принципе можно использовать функцию Кармайкла, в данном случае =lcm(p - 1, q - 1).
+		long_number_t phi = lcm ((p - 1), (q - 1));
 		const int e = 65537;
 		long_number_t d = modular_invert (e, phi);
 		public_key_t pub (n, e);
 		private_key_t secured (p, q, d, n);
+		printf ("Primes:\n%s\n%s\nn:%s\n", p.get ().c_str (), q.get ().c_str (), n.get ().c_str ());
 		return std::pair<private_key_t, public_key_t>{secured, pub};
 	}
 };

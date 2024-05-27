@@ -25,6 +25,8 @@ public:
 	template<typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
 	long_number_t (const T& val = T()) : num (val) { }
 
+	long_number_t operator- () const;
+
 	long_number_t& operator+= (const long_number_t& other);
 	long_number_t operator+ (const long_number_t& other) const;
 
@@ -55,17 +57,12 @@ public:
 	long_number_t& operator= (const long_number_t& other);
 	long_number_t& operator= (long_number_t&& other);
 
-#define COMPARE_OP(op_name, check) \
-	bool op_name (const long_number_t& other) const { \
-		return num check other.num; \
-	}
-	COMPARE_OP (operator<, <);
-	COMPARE_OP (operator<=, <=);
-	COMPARE_OP (operator>, >);
-	COMPARE_OP (operator>=, >=);
-	COMPARE_OP (operator==, ==);
-	COMPARE_OP (operator!=, !=);
-#undef COMPARE_OP
+	bool operator< (const long_number_t& other) const;
+	bool operator<= (const long_number_t& other) const;
+	bool operator> (const long_number_t& other) const;
+	bool operator>= (const long_number_t& other) const;
+	bool operator== (const long_number_t& other) const;
+	bool operator!= (const long_number_t& other) const;
 
 	operator std::string() const;
 	std::string get (int base = BASE) const;
@@ -83,6 +80,7 @@ public:
 	friend long_number_t gen_randprime (_size_t bytes, bool round);
 	friend long_number_t modular_invert (const long_number_t& what, const long_number_t& mod);
 	friend long_number_t pow_prime_m (const long_number_t& base, const long_number_t& exp, const long_number_t& mod);
+	friend long_number_t pow_m (const long_number_t& base, const long_number_t& exp, const long_number_t& mod);
 	friend long_number_t gcd (const long_number_t& a, const long_number_t& b);
 	friend long_number_t lcm (const long_number_t& a, const long_number_t& b);
 };
@@ -92,6 +90,7 @@ long_number_t gen_randint (_size_t bytes);
 long_number_t gen_randprime (_size_t bytes, bool round = false);
 long_number_t modular_invert (const long_number_t& what, const long_number_t& mod);
 long_number_t pow_prime_m (const long_number_t& base, const long_number_t& exp, const long_number_t& mod);
+long_number_t pow_m (const long_number_t& base, const long_number_t& exp, const long_number_t& mod);
 long_number_t gcd (const long_number_t& a, const long_number_t& b);
 long_number_t lcm (const long_number_t& a, const long_number_t& b);
 

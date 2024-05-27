@@ -12,21 +12,26 @@
 const _size_t BUFF_SIZE = 10000;
 
 int main () {
-	const _size_t KEY_SIZE_RSA = 2048;
+	const _size_t KEY_SIZE_RSA = 4096;
 	std::pair<rsa::private_key_t, rsa::public_key_t> keys = rsa::generate (KEY_SIZE_RSA);
 	const int TOTAL = 100;
 	int fast_bad = 0, long_bad = 0;
-	for (int i = 0; i < TOTAL; ++i) {
-		long_number_t ex = gen_randprime (KEY_SIZE_RSA / 8);
+	for (int i = 1; i <= TOTAL; ++i) {
+		long_number_t ex = gen_randint (KEY_SIZE_RSA / 8);
+		//printf ("%s\n", ex.get ().c_str ());
 		long_number_t enc = keys.second.encrypt (ex);
 		long_number_t dec1 = keys.first.decrypt_fast (enc), dec2 = keys.first.decrypt_long (enc);
 		fast_bad += (ex != dec1);
 		long_bad += (ex != dec2);
 		if (i * 10 % TOTAL == 0) {
-			printf ("%d\n", i * 100 / TOTAL);
+			printf ("%d %%\n", i * 100 / TOTAL);
 		}
 	}
-	printf ("Fast fails: %d, long fails: %d, total: %d", fast_bad, long_bad, TOTAL);
+	printf ("Fast fails: %d, long fails: %d, total: %d\n", fast_bad, long_bad, TOTAL);
+	long_number_t p = 9817, q = 9907, e = 65537, c = 36076319, d = modular_invert (e, lcm (p - 1, q - 1)), n = p * q;
+	std::pair<rsa::private_key_t, rsa::public_key_t> test {rsa::private_key_t (p, q, d, n), rsa::public_key_t (n)};
+	long_number_t decrypted = test.first.decrypt_fast (c);
+	printf ("Test: decoded: %s, ok:%d\n", decrypted.get (10).c_str (), decrypted == 41892906);
 	/*
 	//AES tests
 	//unsigned char cipher_key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};

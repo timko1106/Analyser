@@ -11,47 +11,38 @@ long_number_t::long_number_t (const long_number_t& other) : num (other.num) { }
 
 long_number_t::long_number_t (long_number_t&& other) : num (std::forward<mpz_class>(other.num)) { }
 
-long_number_t& long_number_t::operator+= (const long_number_t& other) {
-	num += other.num;
-	return *this;
-}
-long_number_t long_number_t::operator+ (const long_number_t& other) const {
+#define ASSIGN_OPERATOR(name, op) \
+	long_number_t& long_number_t::name (const long_number_t& other) { \
+		num op other.num; \
+		return *this; \
+	}
+#define BIN_OPERATOR(name, op) \
+	long_number_t long_number_t::name (const long_number_t& other) const { \
+		long_number_t res = *this; \
+		res op other; \
+		return res; \
+	}
+
+long_number_t long_number_t::operator- () const {
 	long_number_t res = *this;
-	res += other;
+	res.num = -res.num;
 	return res;
 }
+ASSIGN_OPERATOR (operator+=, +=);
+BIN_OPERATOR (operator+, +=);
 
 long_number_t& long_number_t::operator%= (const long_number_t& other) {
-	num %= other.num;
+	mpz_class _abs = abs (other.num);
+	((num %= _abs) += _abs) %= _abs;
 	return *this;
 }
-long_number_t long_number_t::operator% (const long_number_t& other) const {
-	long_number_t res = *this;
-	res %= other;
-	return res;
-}
+BIN_OPERATOR (operator%, %=);
 
-long_number_t& long_number_t::operator-= (const long_number_t& other) {
-	num -= other.num;
-	return *this;
-}
-long_number_t long_number_t::operator- (const long_number_t& other) const {
-	long_number_t res = *this;
-	res -= other;
-	return res;
-}
+ASSIGN_OPERATOR(operator-=, -=);
+BIN_OPERATOR(operator-, -=);
 
-long_number_t& long_number_t::operator*= (const long_number_t& other) {
-	num *= other.num;
-	return *this;
-}
-
-long_number_t long_number_t::operator* (const long_number_t& other) const {
-	long_number_t res = *this;
-	res *= other;
-	return res;
-}
-
+ASSIGN_OPERATOR(operator*=, *=);
+BIN_OPERATOR(operator*, *=);
 
 long_number_t& long_number_t::operator<<= (shift_t shift) {
 	num <<= shift;
@@ -75,40 +66,16 @@ long_number_t long_number_t::operator>> (shift_t shift) const {
 	return res;
 }
 
-long_number_t& long_number_t::operator|= (const long_number_t& other) {
-	num |= other.num;
-	return *this;
-}
+ASSIGN_OPERATOR(operator|=, |=);
+BIN_OPERATOR(operator|, |=);
 
-long_number_t long_number_t::operator| (const long_number_t& other) const {
-	long_number_t res = *this;
-	res |= other;
-	return res;
-}
+ASSIGN_OPERATOR(operator&=, &=);
+BIN_OPERATOR(operator&, &=);
 
-long_number_t& long_number_t::operator&= (const long_number_t& other) {
-	num &= other.num;
-	return *this;
-}
-
-long_number_t long_number_t::operator& (const long_number_t& other) const {
-	long_number_t res = *this;
-	res &= other;
-	return res;
-}
-
-long_number_t& long_number_t::operator^= (const long_number_t& other) {
-	num |= other.num;
-	return *this;
-}
-
-long_number_t long_number_t::operator^ (const long_number_t& other) const {
-	long_number_t res = *this;
-	res |= other;
-	return res;
-}
-
-
+ASSIGN_OPERATOR(operator^=, ^=);
+BIN_OPERATOR(operator^, ^=);
+#undef ASSIGN_OPERATOR
+#undef BIN_OPERATOR
 
 long_number_t& long_number_t::operator= (const long_number_t& other) {
 	num = other.num;
@@ -119,6 +86,19 @@ long_number_t& long_number_t::operator= (long_number_t&& other) {
 	num = std::forward<mpz_class>(other.num);
 	return *this;
 }
+
+#define COMP_OPERATOR(name, op) \
+	bool long_number_t::name (const long_number_t& other) const { \
+		return num op other.num; \
+	}
+COMP_OPERATOR (operator<, <);
+COMP_OPERATOR (operator<=, <=);
+COMP_OPERATOR (operator>, >);
+COMP_OPERATOR (operator>=, >=);
+COMP_OPERATOR (operator==, ==);
+COMP_OPERATOR (operator!=, !=);
+#undef COMP_OPERATOR
+
 
 long_number_t::operator std::string() const {
 	return num.get_str (BASE);
@@ -134,9 +114,12 @@ long_number_t gen_randint (_size_t bytes) {
 	const _size_t RAND_SIZE = sizeof (std::random_device::result_type);
 	long_number_t tmp = 1;
 	tmp <<= (8 * RAND_SIZE);
-	for (_size_t i = 0; i < bytes / RAND_SIZE; ++i) {
+	for (_size_t i = 0; i < (bytes + RAND_SIZE - 1) / RAND_SIZE; ++i) {
 		gen *= tmp;
 		gen += seed_gen ();
+	}
+	for (_size_t i = 0; i < (RAND_SIZE - bytes) % RAND_SIZE; ++i) {
+		gen >>= 8;
 	}
 	return gen;
 }
@@ -144,7 +127,7 @@ long_number_t gen_randint (_size_t bytes) {
 long_number_t gen_randprime (_size_t bytes, bool round) {
 	long_number_t gen = gen_randint (bytes), get{};
 	if (round) {
-		long_number_t min = long_number_t (1) << (8 * bytes - 1);
+		long_number_t min = long_number_t (1) << (8 * bytes);
 		while (gen < min) {
 			gen <<= 1;
 		}
@@ -165,6 +148,12 @@ long_number_t modular_invert (const long_number_t& what, const long_number_t& mo
 long_number_t pow_prime_m (const long_number_t& base, const long_number_t& exp, const long_number_t& mod) {
 	long_number_t result{}, exp_optimized = exp % (mod - 1);
 	mpz_powm (result.num.get_mpz_t (), base.num.get_mpz_t (), exp_optimized.num.get_mpz_t (), mod.num.get_mpz_t ());
+	return result;
+}
+
+long_number_t pow_m (const long_number_t& base, const long_number_t& exp, const long_number_t& mod) {
+	long_number_t result{};
+	mpz_powm (result.num.get_mpz_t (), base.num.get_mpz_t (), exp.num.get_mpz_t (), mod.num.get_mpz_t ());
 	return result;
 }
 
