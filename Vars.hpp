@@ -15,6 +15,8 @@
 #define VERBOSE_DTORS 0
 #define INCLUDE_ZERO_TERMINATOR true
 
+#define UNSAFE_PRIME_ROOT 1
+
 #include <cstddef>
 #include <cstring>
 #include <chrono>

@@ -107,33 +107,58 @@ std::string long_number_t::get (int base) const {
 	return num.get_str (base);
 }
 
-long_number_t gen_randint (_size_t bytes) {
+_size_t long_number_t::sizeinbase (int base) const {
+	return mpz_sizeinbase (num.get_mpz_t (), base);
+}
+
+template<>
+long_number_t gen_randint<true> (_size_t bytes) {
 	long_number_t gen{};
-	std::random_device seed_gen{};
 	gen = 0;
-	const _size_t RAND_SIZE = sizeof (std::random_device::result_type);
+	const _size_t RAND_SIZE = random_generator::TYPE_SIZE;
 	long_number_t tmp = 1;
 	tmp <<= (8 * RAND_SIZE);
 	for (_size_t i = 0; i < (bytes + RAND_SIZE - 1) / RAND_SIZE; ++i) {
 		gen *= tmp;
-		gen += seed_gen ();
+		gen += random_generator::get_secure ();
 	}
-	for (_size_t i = 0; i < (RAND_SIZE - bytes) % RAND_SIZE; ++i) {
+	for (_size_t i = 0; i < (RAND_SIZE - bytes % RAND_SIZE) % RAND_SIZE; ++i) {
+		gen >>= 8;
+	}
+	return gen;
+}
+template<>
+long_number_t gen_randint<false> (_size_t bytes) {
+	long_number_t gen{};
+	gen = 0;
+	const _size_t RAND_SIZE = random_generator::TYPE_SIZE;
+	long_number_t tmp = 1;
+	tmp <<= (8 * RAND_SIZE);
+	for (_size_t i = 0; i < (bytes + RAND_SIZE - 1) / RAND_SIZE; ++i) {
+		gen *= tmp;
+		gen += random_generator::get ();
+	}
+	for (_size_t i = 0; i < (RAND_SIZE - bytes % RAND_SIZE) % RAND_SIZE; ++i) {
 		gen >>= 8;
 	}
 	return gen;
 }
 
+long_number_t gen_next_prime (const long_number_t& n) {
+	long_number_t res{};
+	mpz_nextprime (res.num.get_mpz_t (), n.num.get_mpz_t ());
+	return res;
+}
+
 long_number_t gen_randprime (_size_t bytes, bool round) {
-	long_number_t gen = gen_randint (bytes), get{};
+	long_number_t gen = gen_randint<true> (bytes);
 	if (round) {
 		long_number_t min = long_number_t (1) << (8 * bytes);
 		while (gen < min) {
 			gen <<= 1;
 		}
 	}
-	mpz_nextprime (get.num.get_mpz_t (), gen.num.get_mpz_t ());
-	return get;
+	return gen_next_prime (gen);
 }
 
 long_number_t modular_invert (const long_number_t& what, const long_number_t& mod) {
@@ -171,5 +196,52 @@ long_number_t lcm (const long_number_t& a, const long_number_t& b) {
 	return result;
 }
 
+int probably_prime (const long_number_t& n) {
+	const int TRIES = 50;
+	for (int i = 15; i < TRIES; ++i) {
+		int res = mpz_probab_prime_p (n.num.get_mpz_t (), i);
+		if (res == 0) {
+			return 0;
+		}
+		if (res == 2) {
+			return 2;
+		}
+	}
+	return 1;
+}
+
+long_number_t gen_safe_prime (_size_t bytes) {
+	long_number_t p_ = gen_randprime (bytes);
+#if UNSAFE_PRIME_ROOT
+	return p_;
+#else
+	long_number_t p = p_ * 2 + 1;
+	int res = probably_prime (p);
+	while (res == 0) {
+		//printf ("NOT PRIME %d: %s\n", res, p.get (10).c_str ());
+		p_ = gen_randprime (bytes);
+		p = p_ * 2 + 1;
+		res = probably_prime (p);
+	}
+	printf ("OK: %s\n", p.get (10).c_str ());
+	return p;
+#endif
+}
+
+long_number_t get_primitive_root_prime (const long_number_t& p) {
+#if UNSAFE_PRIME_ROOT
+	_size_t len = (p.sizeinbase (2) + 7) / 8 + 1;
+	return gen_randint<false> (len) % (p - 3) + 2;
+#else
+	long_number_t p_ = p >> 1;
+	for (long_number_t g = 2; g < p - 1; g += 1) {
+		if ((g * g) % p != 1 && pow_m (g, p_, p) != 1) {
+			//printf ("OK: %s\n", g.get (10).c_str ());
+			return g;
+		}
+	}
+	return 3;
+#endif
+}
 
 #endif

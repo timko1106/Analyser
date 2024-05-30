@@ -8,15 +8,17 @@ namespace rsa {
 		long_number_t p, q, dp, dq, q_inv, d, n;
 	public:
 		private_key_t (const long_number_t& p, const long_number_t& q, const long_number_t& d, const long_number_t& n);
-		long_number_t decrypt_fast (const long_number_t& c);
-		long_number_t decrypt_long (const long_number_t& c);
+		long_number_t decrypt_fast (const long_number_t& c) const;
+		long_number_t decrypt_long (const long_number_t& c) const;
 	};
 	class public_key_t {
 		long_number_t n;
 		int e;
 	public:
 		public_key_t (const long_number_t& n, int e = 65537);
-		long_number_t encrypt (const long_number_t& m);
+		long_number_t encrypt (const long_number_t& m) const;
+		long_number_t get_n () const;
+		int get_e () const;
 	};
 	std::pair<private_key_t, public_key_t> generate (_size_t bits = 2048);
 }

@@ -2,10 +2,11 @@
 #define LONG_MATH_H
 
 #include "Vars.hpp"
+#include "RandomSource.hpp"
 #include <gmpxx.h>
-#include <random>
 #include <type_traits>
 #include <limits>
+#include <vector>
 
 constexpr int BASE = 16;
 
@@ -76,16 +77,25 @@ public:
 	unsigned long get () const {
 		return num.get_ui ();
 	}
+	_size_t sizeinbase (int base) const;
+
+	template<bool secure>
 	friend long_number_t gen_randint (_size_t bytes);
+
+	friend long_number_t gen_next_prime (const long_number_t& n);
 	friend long_number_t gen_randprime (_size_t bytes, bool round);
 	friend long_number_t modular_invert (const long_number_t& what, const long_number_t& mod);
 	friend long_number_t pow_prime_m (const long_number_t& base, const long_number_t& exp, const long_number_t& mod);
 	friend long_number_t pow_m (const long_number_t& base, const long_number_t& exp, const long_number_t& mod);
 	friend long_number_t gcd (const long_number_t& a, const long_number_t& b);
 	friend long_number_t lcm (const long_number_t& a, const long_number_t& b);
+	friend int probably_prime (const long_number_t& n);
+	friend long_number_t gen_safe_prime (_size_t bytes);
+	friend long_number_t get_primitive_root_prime (const long_number_t& p);
 };
-
+template<bool secure>
 long_number_t gen_randint (_size_t bytes);
+long_number_t gen_next_prime (const long_number_t& n);
 //round - добить так, чтобы произведение двух rand_prime имело >b1+b2 байт.
 long_number_t gen_randprime (_size_t bytes, bool round = false);
 long_number_t modular_invert (const long_number_t& what, const long_number_t& mod);
@@ -93,5 +103,8 @@ long_number_t pow_prime_m (const long_number_t& base, const long_number_t& exp, 
 long_number_t pow_m (const long_number_t& base, const long_number_t& exp, const long_number_t& mod);
 long_number_t gcd (const long_number_t& a, const long_number_t& b);
 long_number_t lcm (const long_number_t& a, const long_number_t& b);
+int probably_prime (const long_number_t& n);
+long_number_t gen_safe_prime (_size_t bytes);
+long_number_t get_primitive_root_prime (const long_number_t& p);
 
 #endif

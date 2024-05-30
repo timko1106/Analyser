@@ -8,16 +8,59 @@
 #include "AES.hpp"
 #include "LongMath.hpp"
 #include "RSA.hpp"
+#include "ElGamal.hpp"
+#include "DiffieHellman.hpp"
 
 const _size_t BUFF_SIZE = 10000;
 
 int main () {
+	const _size_t KEY_SIZE_DH = 2048;
+	const int TOTAL = 100;
+	int bad = 0;
+	for (int i = 1; i <= TOTAL; ++i) {
+		diffie_hellman::key_t key_A = diffie_hellman::generate (KEY_SIZE_DH);
+		long_number_t A = key_A.gen_A ();
+		diffie_hellman::key_t key_B = diffie_hellman::key_t (key_A.get_p (), key_A.get_g (), A);
+		long_number_t B = key_B.gen_A ();
+		long_number_t K_B = key_B.gen_K (A), K_A = key_A.gen_K (B);
+		bad += (K_A != K_B);
+		if (i % (TOTAL / 10) == 0) {
+			printf ("%d%%\n", i * 10 / (TOTAL / 10));
+		}
+	}
+	printf ("Bad: %d, Total: %d\n", bad, TOTAL);
+	/*
+	//Если Vars.hpp:UNSAFE_PRIMITIVE_ROOT=0, то KEY_SIZE_EL_GAMAL<=1024. Иначе слишком долго
+	const _size_t KEY_SIZE_EL_GAMAL = 4096;
+	std::pair<el_gamal::private_key_t, el_gamal::public_key_t> keys = el_gamal::generate (KEY_SIZE_EL_GAMAL);
+	printf ("Generated\n");
+	const int TOTAL = 100;
+	int bad = 0;
+	for (int i = 1; i <= TOTAL; ++i) {
+		long_number_t ex = gen_randint<false> (KEY_SIZE_EL_GAMAL / 8);
+		//printf ("Try:%d\nNum: %s\n", i, ex.get (10).c_str ());
+		auto enc = keys.second.encode (ex);
+		//printf ("Encoded: %s, %s\n", enc.first.get (10).c_str (), enc.second.get (10).c_str ());
+		long_number_t dec = keys.first.decode (enc);
+		//printf ("Decoded: %s\n", dec.get (10).c_str ());
+		bad += (ex != dec);
+	}
+	printf ("Encryption tests:\nBad: %d, total: %d\n", bad, TOTAL);
+	bad = 0;
+	for (int i = 1; i <= TOTAL; ++i) {
+		long_number_t m = gen_randint<false> (KEY_SIZE_EL_GAMAL / 8);
+		auto signature = keys.first.sign (m);
+		bad += (!keys.second.check_sign (signature, m));
+
+	}
+	printf ("Signature tests:\nBad: %d, total: %d\n", bad, TOTAL);*/
+	/*
 	const _size_t KEY_SIZE_RSA = 4096;
 	std::pair<rsa::private_key_t, rsa::public_key_t> keys = rsa::generate (KEY_SIZE_RSA);
 	const int TOTAL = 100;
 	int fast_bad = 0, long_bad = 0;
 	for (int i = 1; i <= TOTAL; ++i) {
-		long_number_t ex = gen_randint (KEY_SIZE_RSA / 8);
+		long_number_t ex = gen_randint<false> (KEY_SIZE_RSA / 8);
 		//printf ("%s\n", ex.get ().c_str ());
 		long_number_t enc = keys.second.encrypt (ex);
 		long_number_t dec1 = keys.first.decrypt_fast (enc), dec2 = keys.first.decrypt_long (enc);
@@ -31,7 +74,7 @@ int main () {
 	long_number_t p = 9817, q = 9907, e = 65537, c = 36076319, d = modular_invert (e, lcm (p - 1, q - 1)), n = p * q;
 	std::pair<rsa::private_key_t, rsa::public_key_t> test {rsa::private_key_t (p, q, d, n), rsa::public_key_t (n)};
 	long_number_t decrypted = test.first.decrypt_fast (c);
-	printf ("Test: decoded: %s, ok:%d\n", decrypted.get (10).c_str (), decrypted == 41892906);
+	printf ("Test: decoded: %s, ok:%d\n", decrypted.get (10).c_str (), decrypted == 41892906);*/
 	/*
 	//AES tests
 	//unsigned char cipher_key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
