@@ -153,7 +153,7 @@ long_number_t gen_next_prime (const long_number_t& n) {
 long_number_t gen_randprime (_size_t bytes, bool round) {
 	long_number_t gen = gen_randint<true> (bytes);
 	if (round) {
-		long_number_t min = long_number_t (1) << (8 * bytes);
+		long_number_t min = long_number_t (1) << (shift_t)(8 * bytes);
 		while (gen < min) {
 			gen <<= 1;
 		}
@@ -218,12 +218,10 @@ long_number_t gen_safe_prime (_size_t bytes) {
 	long_number_t p = p_ * 2 + 1;
 	int res = probably_prime (p);
 	while (res == 0) {
-		//printf ("NOT PRIME %d: %s\n", res, p.get (10).c_str ());
 		p_ = gen_randprime (bytes);
 		p = p_ * 2 + 1;
 		res = probably_prime (p);
 	}
-	printf ("OK: %s\n", p.get (10).c_str ());
 	return p;
 #endif
 }
@@ -236,7 +234,6 @@ long_number_t get_primitive_root_prime (const long_number_t& p) {
 	long_number_t p_ = p >> 1;
 	for (long_number_t g = 2; g < p - 1; g += 1) {
 		if ((g * g) % p != 1 && pow_m (g, p_, p) != 1) {
-			//printf ("OK: %s\n", g.get (10).c_str ());
 			return g;
 		}
 	}

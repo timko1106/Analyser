@@ -13,6 +13,7 @@ namespace aes {
 	const _size_t ROUNDS_1 = 10;
 	const _size_t ROUNDS_2 = 12;
 	const _size_t ROUNDS_3 = 14;
+	const _size_t MAX_ROUNDS = ROUNDS_3;
 	const _size_t KEY_SIZE = KEY_SIZE_1;//4-byte words
 	const _size_t STATE_SIZE = 4;
 	using byte = unsigned char;
@@ -20,8 +21,8 @@ namespace aes {
 	using word = uint32_t;
 	const _size_t BLOCK_SIZE = WORD_SIZE * STATE_SIZE;
 	_size_t output_size (_size_t input_size);
-	_size_t encrypt (istream_base& in, ostream_base& out, _size_t streamsize, char* key, _size_t key_size = KEY_SIZE);
-	_size_t decrypt (istream_base& in, ostream_base& out, _size_t streamsize, char* key, _size_t key_size = KEY_SIZE);
+	_size_t encrypt (istream_base& in, ostream_base& out, _size_t streamsize, const char* key, _size_t key_size = KEY_SIZE);
+	_size_t decrypt (istream_base& in, ostream_base& out, _size_t streamsize, const char* key, _size_t key_size = KEY_SIZE);
 }
 
 #endif

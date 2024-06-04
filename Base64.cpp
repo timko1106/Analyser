@@ -27,7 +27,7 @@ char* base64::encode(const char* msg, _size_t size) {
 		block_length = 0;
 		for (int i = 0; i < 3; ++i) {
 			if (used < size) {
-				inblock[i] = msg[used++];
+				inblock[i] = (unsigned char)msg[used++];
 				++block_length;
 			}
 			else inblock[i] = 0;
@@ -38,6 +38,7 @@ char* base64::encode(const char* msg, _size_t size) {
 			caret += 4;
 		}
 	}
+	*caret = 0;
 	return result;
 }
 
@@ -61,9 +62,9 @@ char* base64::decode(const char* msg, _size_t size) {
 		for (int i = 0; i < 4; ++i) {
 			unsigned char v = 0;
 			while (used < size && v == 0) {
-				v = msg[used++];
+				v = (unsigned char)msg[used++];
 				if (used <= size) {
-					v = ((v < 43 || v > 122) ? 0 : (char)cd64[v - 43]);
+					v = ((v < 43 || v > 122) ? 0 : (unsigned char)cd64[v - 43]);
 					if (v != 0) {
 						v = ((v == '$') ? 0 : v - 61);
 					}
@@ -86,6 +87,7 @@ char* base64::decode(const char* msg, _size_t size) {
 			caret += 3;
 		}
 	}
+	*caret = 0;
 	return result;
 }
 

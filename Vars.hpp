@@ -14,7 +14,6 @@
 #define VERBOSE 0
 #define VERBOSE_DTORS 0
 #define INCLUDE_ZERO_TERMINATOR true
-
 #define UNSAFE_PRIME_ROOT 1
 
 #include <cstddef>
@@ -30,7 +29,7 @@
 
 using _size_t = unsigned long long;
 
-const _size_t FULL = -1;
+const _size_t FULL = 0xffffffffffffffff;
 
 struct someinfo {
 	std::thread::id __id;

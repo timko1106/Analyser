@@ -35,13 +35,14 @@ public:
 class istringstream : public stringstream_base, public istream_base {
 public:
 	istringstream (char* buffer, _size_t buffer_size = FULL, bool use = false);
+	istringstream (const char* buffer, _size_t buffer_size = FULL);
 	virtual ~istringstream ();
 	virtual void seekg(const base_pos &p) override;
 	virtual base_pos* tellg() const override;
 	virtual bool eof() const override;
 	virtual _size_t buff_size() const override;
 	istream_base& operator>> (char& val) override;
-	void read (char* buffer, _size_t streamsize) override;
+	_size_t read (char* buffer, _size_t streamsize) override;
 };
 
 class ostringstream : public stringstream_base, public ostream_base {

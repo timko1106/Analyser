@@ -6,6 +6,7 @@
 #include <cmath>
 
 namespace rle {
+	//streamsize В БИТАХ.
 	std::pair<char*, _size_t> decode(ibitstream_base& in, _size_t streamsize);
 	_size_t encode(ibitstream_base& in, obitstream_base& out, _size_t streamsize);
 }

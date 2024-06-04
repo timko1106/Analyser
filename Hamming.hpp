@@ -3,7 +3,7 @@
 
 #include "Bitstream.hpp"
 #include <cstdio>
-//streamsize всегда в битах!
+//streamsize всегда в битах! Кроме hamming и rle всё в байтах.
 namespace hamming {
 	//r - количество битов контроля чётности на 1 блок
 	_size_t get_encode_size (_size_t streamsize, _size_t r);

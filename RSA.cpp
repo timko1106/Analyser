@@ -4,7 +4,7 @@
 #include "RSA.hpp"
 
 namespace rsa {
-	private_key_t::private_key_t (const long_number_t& p, const long_number_t& q, const long_number_t& d, const long_number_t& n) : p (p), q (q), n (n), d (d) {
+	private_key_t::private_key_t (const long_number_t& p_, const long_number_t& q_, const long_number_t& d_, const long_number_t& n_) : p (p_), q (q_), d (d_), n (n_) {
 		dp = d % (p - 1);
 		dq = d % (q - 1);
 		q_inv = modular_invert (q, p);
@@ -20,7 +20,7 @@ namespace rsa {
 	long_number_t private_key_t::decrypt_long (const long_number_t& c) const {
 		return pow_m (c, d, n);
 	}
-	public_key_t::public_key_t (const long_number_t& n, int e) : e (e), n (n) { }
+	public_key_t::public_key_t (const long_number_t& n_, int e_) : n (n_), e (e_) { }
 
 	long_number_t public_key_t::encrypt (const long_number_t& m) const {
 		return pow_m (m, e, n);
@@ -42,7 +42,7 @@ namespace rsa {
 		long_number_t d = modular_invert (e, phi);
 		public_key_t pub (n, e);
 		private_key_t secured (p, q, d, n);
-		printf ("Primes:\n%s\n%s\nn:%s\n", p.get ().c_str (), q.get ().c_str (), n.get ().c_str ());
+		//printf ("Primes:\n%s\n%s\nn:%s\n", p.get ().c_str (), q.get ().c_str (), n.get ().c_str ());
 		return std::pair<private_key_t, public_key_t>{secured, pub};
 	}
 };

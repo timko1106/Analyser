@@ -10,7 +10,8 @@ enum modifiers_t {
 
 struct base_pos {
 	_size_t byteoffset;
-	modifiers_t modifiers = EMPTY;
+	modifiers_t modifiers;
+	base_pos (_size_t boffset = 0, modifiers_t mods = EMPTY) : byteoffset (boffset), modifiers (mods) { }
 };
 
 class iostream_base {
@@ -27,7 +28,7 @@ class istream_base : public iostream_base {
 public:
 	virtual ~istream_base () { }
 	virtual istream_base& operator>>(char& c) = 0;
-	virtual void read(char* data, _size_t streamsize) = 0;
+	virtual _size_t read(char* data, _size_t streamsize) = 0;
 };
 class ostream_base : public iostream_base {
 public:

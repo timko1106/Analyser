@@ -4,14 +4,14 @@
 #include "DiffieHellman.hpp"
 
 namespace diffie_hellman {
-	key_t::key_t (const long_number_t& p, const long_number_t& g) : p (p), g (g) {
+	key_t::key_t (const long_number_t& p_, const long_number_t& g_) : p (p_), g (g_) {
 		_size_t bytes = (p.sizeinbase (2) + 7) / 8;
 		a = gen_randint<true>(bytes + 1) % (p - 2) + 2;
 		while (pow_prime_m (g, a, p) == 1) {
 			a = gen_randint<true>(bytes + 1) % (p - 2) + 2;
 		}
 	}
-	key_t::key_t (const long_number_t& p, const long_number_t& g, const long_number_t& B) : p (p), g (g) {
+	key_t::key_t (const long_number_t& p_, const long_number_t& g_, const long_number_t& B) : p (p_), g (g_) {
 		_size_t bytes = (p.sizeinbase (2) + 7) / 8;
 		a = gen_randint<true>(bytes + 1) % (p - 2) + 2;
 		while (pow_prime_m (g, a, p) == 1 || pow_prime_m (B, a, p) == 1) {

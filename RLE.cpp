@@ -8,7 +8,7 @@ _size_t rle::encode(ibitstream_base& in, obitstream_base& out, _size_t streamsiz
 	bit current;
 	in >> current;
 	out << current;
-	int counter = 1;
+	_size_t counter = 1;
 	_size_t res{ 1 };
 #if VERBOSE
 	printf ("First: %d\n", current);
@@ -20,7 +20,7 @@ _size_t rle::encode(ibitstream_base& in, obitstream_base& out, _size_t streamsiz
 			++counter;
 			continue;
 		}
-		_size_t offset = (_size_t)log2(counter);
+		_size_t offset = (_size_t)std::log2<_size_t>(counter);
 #if VERBOSE
 		printf ("Series: %d, offset: %llu\n", counter, offset);
 #endif
@@ -38,7 +38,7 @@ _size_t rle::encode(ibitstream_base& in, obitstream_base& out, _size_t streamsiz
 #if VERBOSE
 		printf ("Limit: %d\n", counter);
 #endif
-		_size_t offset = (_size_t)log2(counter);
+		_size_t offset = (_size_t)std::log2<_size_t>(counter);
 		res += 2 * offset + 1;
 #if VERBOSE
 		printf ("Offset: %llu, final length: %llu\n", offset, res);
@@ -106,7 +106,7 @@ std::pair<char*, _size_t> rle::decode (ibitstream_base& in, _size_t streamsize) 
 	char* buff = new char[(size + 7) / 8 + 1];//NULL-terminated
 	{
 		std::fstream __in__ (path, std::ios_base::in);
-		__in__.read(buff, (size + 7) / 8);
+		__in__.read(buff, (std::streamsize)((size + 7) / 8));
 		__in__.close();
 	}
 	std::remove (path.c_str());

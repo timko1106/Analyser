@@ -6,26 +6,20 @@
 ibitstream::ibitstream (char* value, _size_t streamsize, bool own) : ibitstream_base (), istringstream (value, streamsize, own) { }
 
 ibitstream::ibitstream(const char* value, _size_t streamsize) : ibitstream_base (), istringstream (const_cast<char*>(value), streamsize, false) { }
-base_pos* ibitstream::tellg() const {
-	return new pos(curr - buff, bitoffset);
+base_pos* ibitstream::tellg () const {
+	return new pos((_size_t)(curr - buff), bitoffset);
 }
 void ibitstream::seekg(const base_pos& p){
+	stringstream_base::seekg (p);
 	if (p.modifiers == EMPTY) {
-		stringstream_base::seekg (p);
 		bitoffset = 0;
 		return;
 	}
-	const pos& _p = (const pos&)p;
-	bitoffset = _p.bitoffset & 0b111;
-	if (_p.byteoffset + buff >= end) {
-		curr = end;
+	if (p.modifiers != modifiers_t::BIT_OFFSET) {
 		return;
 	}
-	if (_p.byteoffset + curr < buff) {
-		curr = buff;
-		return;
-	}
-	curr = buff + _p.byteoffset;
+	const pos* p_ = (const pos*)&p;
+	bitoffset = (p_->bitoffset) & 0x111b;
 }
 
 ibitstream_base& ibitstream::operator>>(bit& value) {

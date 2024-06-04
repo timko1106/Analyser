@@ -43,7 +43,7 @@ _size_t aes::output_size (_size_t input_size) {
 	return (input_size + aes::BLOCK_SIZE - 1) / aes::BLOCK_SIZE * aes::BLOCK_SIZE;
 }
 
-void add_round_key (aes::byte* state, aes::byte* key) {
+void add_round_key (aes::byte* state, const aes::byte* key) {
 	for (_size_t i = 0; i < Nb; ++i) {
 		for (_size_t j = 0; j < aes::WORD_SIZE; ++j) {
 			state[i * aes::WORD_SIZE + j] ^= *key;
@@ -117,7 +117,7 @@ void mix_columns (aes::byte* state) {
 #define VERBOSE_PRINTING(...)
 #endif
 
-void block_encrypt (aes::byte* in, aes::byte* out, aes::byte* key, _size_t Nr) {
+void block_encrypt (aes::byte* in, aes::byte* out, const aes::byte* key, _size_t Nr) {
 	aes::byte* state = out;
 	memcpy (state, in, aes::BLOCK_SIZE);
 	VERBOSE_PRINTING ("Input: ");
@@ -165,10 +165,10 @@ aes::word rot_word (aes::word w) {
 	return (w << 8) | leading;
 }
 char to_hex (aes::byte b) {
-	return b >= 10 ? 'a' + (b - 10) : '0' + b;
+	return (char)(b >= (aes::byte)10 ? 'a' + (b - (char)10) : '0' + b);
 }
-aes::word get (aes::byte* b) {
-	return ((b[0] * 256 + b[1]) * 256 + b[2]) * 256 + b[3];
+aes::word get (const aes::byte* b) {
+	return ((b[0] * (aes::word)256 + b[1]) * (aes::word)256 + b[2]) * (aes::word)256 + b[3];
 }
 void set (aes::byte* dest, aes::word what) {
 	dest[0] = (aes::byte)(what >> 24);
@@ -176,8 +176,8 @@ void set (aes::byte* dest, aes::word what) {
 	dest[2] = (aes::byte)((what >> 8) & 0xFF);
 	dest[3] = (aes::byte)(what & 0xFF);
 }
-void key_expansion (aes::byte* key, _size_t Nk, aes::byte* rounds, _size_t Nr) {
-	aes::word prev;
+void key_expansion (const aes::byte* key, _size_t Nk, aes::byte* rounds, _size_t Nr) {
+	aes::word prev, tmp, shifted;
 	_size_t i = 0;
 	aes::byte* ptr = rounds;
 	for (; i < Nk; ++i) {
@@ -185,13 +185,14 @@ void key_expansion (aes::byte* key, _size_t Nk, aes::byte* rounds, _size_t Nr) {
 	}
 	for (; i < Nb * (Nr + 1); ++i) {
 		prev = get (rounds + (i - 1) * aes::WORD_SIZE);
+		tmp = prev;
+		shifted = get (rounds + (i - Nk) * aes::WORD_SIZE);
 		if (i % Nk == 0) {
-			set (rounds + i * aes::WORD_SIZE, sub_word (rot_word (prev)) ^  get (rounds + (i - Nk) * aes::WORD_SIZE) ^ rcon (i / Nk));
+			tmp = sub_word (rot_word (tmp)) ^ rcon ((aes::byte)(i / Nk));
 		} else if (Nk > 6 && i % Nk == 4) {
-			set (rounds + i * aes::WORD_SIZE, get (rounds + (i - Nk) * aes::WORD_SIZE) ^ sub_word (prev));
-		} else {
-			set (rounds + i * aes::WORD_SIZE, get (rounds + (i - Nk) * aes::WORD_SIZE) ^ prev);
+			tmp = sub_word (tmp);
 		}
+		set (rounds + i * aes::WORD_SIZE, shifted ^ tmp);
 	}
 #if VERBOSE
 	printf ("Key:");
@@ -204,7 +205,7 @@ void key_expansion (aes::byte* key, _size_t Nk, aes::byte* rounds, _size_t Nr) {
 #endif
 }
 
-_size_t aes::encrypt (istream_base& in, ostream_base& out, _size_t streamsize, char* key, _size_t key_size) {
+_size_t aes::encrypt (istream_base& in, ostream_base& out, _size_t streamsize, const char* key, _size_t key_size) {
 	_size_t Nk = key_size, Nr;
 	switch (Nk) {
 		case KEY_SIZE_1:
@@ -222,15 +223,14 @@ _size_t aes::encrypt (istream_base& in, ostream_base& out, _size_t streamsize, c
 #if VERBOSE
 	printf ("Nk: %llu, Nr: %llu, streamsize: %llu, result: %llu\n", Nk, Nr, streamsize, (streamsize + aes::BLOCK_SIZE - 1) / aes::BLOCK_SIZE * aes::BLOCK_SIZE);
 #endif
-	byte* rounds = new byte[WORD_SIZE * Nb * (Nr + 1)];
+	byte rounds[WORD_SIZE * Nb * (aes::MAX_ROUNDS + 1)] {};
 	aes::byte in_block[aes::BLOCK_SIZE] {}, out_block[aes::BLOCK_SIZE] {};
-	key_expansion ((byte*)key, Nk, rounds, Nr);
+	key_expansion ((const byte*)key, Nk, rounds, Nr);
 	for (_size_t i = 0; i < (streamsize + aes::BLOCK_SIZE - 1) / aes::BLOCK_SIZE; ++i) {
 		in.read ((char*)in_block, aes::BLOCK_SIZE);
 		block_encrypt (in_block, out_block, rounds, Nr);
 		out.write ((char*)out_block, aes::BLOCK_SIZE);
 	}
-	delete[] rounds;
 	return (streamsize + aes::BLOCK_SIZE - 1) / aes::BLOCK_SIZE * aes::BLOCK_SIZE;
 }
 void inv_sub_bytes (aes::byte* state) {
@@ -284,7 +284,7 @@ void inv_mix_columns (aes::byte* state) {
 	}
 }
 
-void block_decrypt (aes::byte* in, aes::byte* out, aes::byte* key, _size_t Nr) {
+void block_decrypt (aes::byte* in, aes::byte* out, const aes::byte* key, _size_t Nr) {
 	aes::byte* state = out;
 	memcpy (state, in, aes::BLOCK_SIZE);
 	VERBOSE_PRINTING ("Input: ");
@@ -308,7 +308,7 @@ void block_decrypt (aes::byte* in, aes::byte* out, aes::byte* key, _size_t Nr) {
 	VERBOSE_PRINTING ("Final:\n");
 }
 #undef VERBOSE_PRINTING
-void key_expansion_decrypt (aes::byte* key, _size_t Nk, aes::byte* rounds, _size_t Nr) {
+void key_expansion_decrypt (const aes::byte* key, _size_t Nk, aes::byte* rounds, _size_t Nr) {
 	key_expansion (key, Nk, rounds, Nr);
 	for (_size_t i = 1; i <= Nr - 1; ++i) {
 		inv_mix_columns (rounds + aes::WORD_SIZE * i * Nb);
@@ -321,7 +321,7 @@ void key_expansion_decrypt (aes::byte* key, _size_t Nk, aes::byte* rounds, _size
 	printf ("\n");
 #endif
 }
-_size_t aes::decrypt (istream_base& in, ostream_base& out, _size_t streamsize, char* key, _size_t key_size) {
+_size_t aes::decrypt (istream_base& in, ostream_base& out, _size_t streamsize, const char* key, _size_t key_size) {
 	_size_t Nk = key_size, Nr;
 	switch (Nk) {
 		case KEY_SIZE_1:
@@ -339,15 +339,14 @@ _size_t aes::decrypt (istream_base& in, ostream_base& out, _size_t streamsize, c
 #if VERBOSE
 	printf ("Nk: %llu, Nr: %llu, streamsize: %llu, result: %llu\n", Nk, Nr, streamsize, (streamsize + aes::BLOCK_SIZE - 1) / aes::BLOCK_SIZE * aes::BLOCK_SIZE);
 #endif
-	byte* rounds = new byte[WORD_SIZE * Nb * (Nr + 1)];
+	byte rounds[WORD_SIZE * Nb * (aes::MAX_ROUNDS + 1)] = {};
 	aes::byte in_block[aes::BLOCK_SIZE] {}, out_block[aes::BLOCK_SIZE] {};
-	key_expansion_decrypt ((byte*)key, Nk, rounds, Nr);
+	key_expansion_decrypt ((const byte*)key, Nk, rounds, Nr);
 	for (_size_t i = 0; i < (streamsize + aes::BLOCK_SIZE - 1) / aes::BLOCK_SIZE; ++i) {
 		in.read ((char*)in_block, aes::BLOCK_SIZE);
 		block_decrypt (in_block, out_block, rounds, Nr);
 		out.write ((char*)out_block, aes::BLOCK_SIZE);
 	}
-	delete[] rounds;
 	return (streamsize + aes::BLOCK_SIZE - 1) / aes::BLOCK_SIZE * aes::BLOCK_SIZE;
 
 }

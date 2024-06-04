@@ -14,14 +14,11 @@
 
 using bit = bool;
 struct pos : public base_pos {
-	long long bitoffset;
-	pos() : bitoffset(0) {
+	int bitoffset;
+	pos () : bitoffset(0) {
 		base_pos::modifiers = BIT_OFFSET;
 	}
-	pos(long long byteoffset, long long bitoffset) : bitoffset(bitoffset) {
-		base_pos::modifiers = BIT_OFFSET;
-		base_pos::byteoffset = byteoffset;
-	}
+	pos(_size_t byteoff, int bitoff) : base_pos (byteoff, BIT_OFFSET), bitoffset(bitoff) { }
 };
 class ibitstream_base : public istream_base {
 protected:
@@ -30,12 +27,12 @@ public:
 	ibitstream_base () : bitoffset(0) {}
 	virtual ~ibitstream_base() {
 #if VERBOSE_DTORS
-		printf ("~ibitstream_base at %p\n", this);
+		printf ("~ibitstream_base at %p\n", (void*)this);
 #endif
 	}
 	virtual ibitstream_base& operator>>(bit& value) = 0;
 	virtual istream_base& operator>>(char& c) = 0;
-	virtual void read(char* data, _size_t streamsize) = 0;
+	virtual _size_t read(char* data, _size_t streamsize) = 0;
 };
 class ibitstream : public ibitstream_base, public istringstream {
 public:
@@ -43,7 +40,7 @@ public:
 	ibitstream (char* value, _size_t buffer = FULL, bool own = false);
 	~ibitstream () {
 #if VERBOSE_DTORS
-		printf ("~ibitstream at %p\n", this);
+		printf ("~ibitstream at %p\n", (void*)this);
 #endif
 	}
 	ibitstream_base& operator>>(bit& value) override;
@@ -51,9 +48,9 @@ public:
 		bitoffset = 0;
 		return istringstream::operator>> (c);
 	}
-	void read(char* data, _size_t streamsize) override {
+	_size_t read(char* data, _size_t streamsize) override {
 		bitoffset = 0;
-		istringstream::read (data, streamsize);
+		return istringstream::read (data, streamsize);
 	}
 	void seekg(const base_pos& p) override;
 	base_pos* tellg() const override;
@@ -74,7 +71,7 @@ public:
 	obitstream_base () : bitoffset(0) {}
 	virtual ~obitstream_base () {
 #if VERBOSE_DTORS
-		printf ("~obitstream_base at %p\n", this);
+		printf ("~obitstream_base at %p\n", (void*)this);
 #endif
 	}
 	virtual obitstream_base& operator<<(bit value) = 0;
@@ -86,7 +83,7 @@ public:
 	obitstream (_size_t buffer_size);
 	~obitstream () {
 #if VERBOSE_DTORS
-		printf ("~obitstream at %p\n", this);
+		printf ("~obitstream at %p\n", (void*)this);
 #endif
 	}
 	obitstream_base& operator<<(bit value) override;
@@ -115,13 +112,13 @@ class obitstream_handled : public obitstream_base {
 private:
 	Handle handler;
 public:
-	obitstream_handled (const Handle& handler) : handler(handler) {}
+	obitstream_handled (const Handle& handle) : handler(handle) {}
 	obitstream_base& operator<< (bit value) override {
 		handler(value);
 		return *this;
 	}
 	ostream_base& operator<< (char c) override {
-		unsigned char _c = c;
+		unsigned char _c = (unsigned char)c;
 		for (unsigned char i = 0; i < 8; --i) {
 			handler ((_c & (1 << (7 - i))) != 0);
 		}

@@ -3,14 +3,14 @@
 
 #include "Xor.hpp"
 
-void xor_cipher::execute (char* key, _size_t key_size, istream_base& in, _size_t streamsize, ostream_base& out) {
+void xor_cipher::execute (const char* key, _size_t key_size, istream_base& in, _size_t streamsize, ostream_base& out) {
 	for (_size_t i = 0; i < streamsize; ++i) {
 		char val;
 		in >> val;
 		out << char(val ^ key[i % key_size]);
 	}
 }
-void xor_cipher::execute_by_signature (char* signature, _size_t signature_size, istream_base& in, _size_t streamsize, ostream_base& out) {
+void xor_cipher::execute_by_signature (const char* signature, _size_t signature_size, istream_base& in, _size_t streamsize, ostream_base& out) {
 	char* key = new char[signature_size + 1];
 	key[signature_size] = 0;
 	in.read (key, signature_size);

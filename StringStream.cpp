@@ -43,7 +43,7 @@ stringstream_base::stringstream_base (const char* buffer, _size_t buff_size) {
 }
 stringstream_base::~stringstream_base() {
 #if VERBOSE_DTORS
-	printf ("~stringstream_base at %p ", this);
+	printf ("~stringstream_base at %p ", (void*)this);
 #endif
 	if (buff) {
 		delete[] buff;
@@ -79,15 +79,14 @@ base_pos* stringstream_base::tellg () const {
 	return new base_pos{(_size_t)(curr - buff)};
 }
 void stringstream_base::seekg (const base_pos& to) {
-	if (to.byteoffset + curr > end) {
+	curr = buff + to.byteoffset;
+	if (curr > end) {
 		curr = end;
 		return;
 	}
-	if (to.byteoffset + curr < buff) {
+	if (curr < buff) {
 		curr = buff;
-		return;
 	}
-	curr = curr + to.byteoffset;
 }
 void stringstream_base::resize (_size_t new_size) {
 	if (buff == nullptr) {
@@ -103,19 +102,18 @@ void stringstream_base::resize (_size_t new_size) {
 	if (buff_size () >= new_size) {
 		return;
 	}
-	_size_t offset = curr - buff;
-	_size_t old_size = end - buff;
+	_size_t offset = (_size_t)(curr - buff);
+	_size_t old_size = (_size_t)(end - buff);
 	char* new_buff = new char[new_size];
 	memcpy (new_buff, buff, old_size);
 	memset (new_buff + old_size, 0, new_size - old_size);
 	buff = new_buff;
 	end = buff + new_size;
-	curr = buff + offset;
+	base_pos to (offset, EMPTY);
+	seekg (to);
 }
 void stringstream_base::reset  () {
-	base_pos p {};
-	p.byteoffset = 0;
-	p.modifiers = EMPTY;
+	base_pos p (0, EMPTY);
 	seekg (p);
 }
 void stringstream_base::own (char* buffer, _size_t new_size) {
@@ -124,7 +122,8 @@ void stringstream_base::own (char* buffer, _size_t new_size) {
 	}
 	buff = buffer;
 	end = buff + new_size;
-	curr = buff;
+	base_pos p (0, EMPTY);
+	seekg (p);
 }
 void stringstream_base::reload (_size_t new_size) {
 	if (new_size == 0) {
@@ -134,13 +133,16 @@ void stringstream_base::reload (_size_t new_size) {
 		delete[] buff;
 	}
 	buff = new char[new_size];
-	curr = buff;
 	end = buff + new_size;
+	memset (buff, 0, new_size);
+	base_pos p (0, EMPTY);
+	seekg (p);
 }
 istringstream::istringstream (char* buffer, _size_t buffer_size, bool use) : stringstream_base (buffer, buffer_size, use) { }
+istringstream::istringstream (const char* buffer, _size_t buffer_size) : stringstream_base (buffer, buffer_size) {}
 istringstream::~istringstream () {
 #if VERBOSE_DTORS
-	printf ("~istringstream at %p\n", this);
+	printf ("~istringstream at %p\n", (void*)this);
 #endif
 	}
 void istringstream::seekg(const base_pos &p) {
@@ -164,9 +166,9 @@ istream_base& istringstream::operator>> (char& val) {
 	++curr;
 	return *this;
 }
-void istringstream::read (char* buffer, _size_t streamsize) {
+_size_t istringstream::read (char* buffer, _size_t streamsize) {
 	if (stringstream_base::eof ()) {
-		return;
+		return 0;
 	}
 	_size_t real = streamsize;
 	if (streamsize > (_size_t)(end - curr)) {
@@ -177,12 +179,13 @@ void istringstream::read (char* buffer, _size_t streamsize) {
 	if (real > streamsize) {
 		memset (buffer + streamsize, 0, real - streamsize);
 	}
+	return streamsize;
 }
 
 ostringstream::ostringstream (size_t buff_size) : stringstream_base ((const char*)nullptr, buff_size) { }
 ostringstream::~ostringstream () {
 #if VERBOSE_DTORS
-	printf ("~ostringstream at %p\n", this);
+	printf ("~ostringstream at %p\n", (void*)this);
 #endif
 }
 void ostringstream::seekg(const base_pos &p) {

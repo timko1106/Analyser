@@ -3,15 +3,17 @@
 
 #include "StreamBase.hpp"
 #include <fstream>
+#include <cstring>
 
 class ifstream : public istream_base {
 	std::fstream fs;
 	_size_t streamsize;
+	std::streamoff beg;
 public:
 	ifstream (const char* const name);
 	~ifstream ();
 	void close ();
-	void read (char* dest, _size_t count);
+	_size_t read (char* dest, _size_t count);
 	istream_base& operator>> (char& val);
 	bool eof () const;
 	bool is_open () const;
@@ -22,6 +24,7 @@ public:
 
 class ofstream : public ostream_base {
 	std::fstream fs;
+	std::streamoff beg;
 public:
 	ofstream (const char* const name);
 	~ofstream ();
@@ -34,5 +37,8 @@ public:
 	void seekg (const base_pos& pos);
 	_size_t buff_size () const;
 };
+
+//Files are equal?
+bool check_if_equal (const char* a, const char* b);
 
 #endif

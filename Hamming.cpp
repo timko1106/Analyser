@@ -113,7 +113,7 @@ void hamming::decode (_size_t streamsize, _size_t r, ibitstream& in, obitstream&
 		_size_t error_bit = 0;
 		for (_size_t j = r; j > 0; --j) {
 			error_bit <<= 1;
-			error_bit |= errors[j - 1];
+			error_bit |= (_size_t)errors[(_size_t)(j - 1)];
 		}
 #if VERBOSE
 		printf ("Error at %llu\nDest:", error_bit);

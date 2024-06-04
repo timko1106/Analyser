@@ -13,8 +13,8 @@ class random_generator {
 		thread_local std::mt19937 gen{};
 		return gen;
 	}
-	static int& iteration () {
-		thread_local int iteration = 0;
+	static _size_t& iteration () {
+		thread_local _size_t iteration = 0;
 		return iteration;
 	}
 	static constexpr _size_t LIMIT = 20;

@@ -3,10 +3,12 @@ CXX = g++
 #CXXFLAGS="...":
 #-fsanitize=address -g - for segfaults
 #-O0, -O1, -O2
+CXXFLAGS = -O3 -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-include-dirs -Wnoexcept -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Werror -pedantic-errors -Wextra -Wcast-align -Wcast-qual -Wconversion -Werror -Wfloat-equal -Wformat=2 -Wformat-nonliteral -Wformat-security -Wformat-y2k -Wimport  -Winit-self  -Winvalid-pch  -Wmissing-field-initializers -Wmissing-format-attribute  -Wmissing-include-dirs -Wmissing-noreturn -Wpacked  -Wpointer-arith -Wredundant-decls -Wshadow -Wstack-protector -Wswitch-default -Wswitch-enum -Wunreachable-code -Wvariadic-macros -Wwrite-strings
+#-fopt-info-inline-optimized-missed
 
 all: ${TARGET}
 clean:
-	rm -rf ${TARGET} *.o $(CXXFLAGS)
+	rm -rf ${TARGET} *.o
 vars.o: Vars.cpp Vars.hpp
 	$(CXX) -o vars.o -c Vars.cpp $(CXXFLAGS)
 random.o: vars.o RandomSource.hpp RandomSource.cpp
@@ -31,7 +33,9 @@ el_gamal.o: vars.o long_math.o ElGamal.hpp ElGamal.cpp
 	$(CXX) -o el_gamal.o -c ElGamal.cpp $(CXXFLAGS)
 diffie_hellman.o: vars.o long_math.o DiffieHellman.hpp DiffieHellman.cpp
 	$(CXX) -o diffie_hellman.o -c DiffieHellman.cpp $(CXXFLAGS)
-main.o: vars.o random.o streams.o base64.o rle.o xor.o hamming.o aes.o long_math.o rsa.o el_gamal.o diffie_hellman.o Main.cpp
+tests.o: vars.o random.o streams.o base64.o rle.o xor.o hamming.o aes.o long_math.o rsa.o el_gamal.o diffie_hellman.o Tests.hpp Tests.cpp
+	$(CXX) -o tests.o -c Tests.cpp $(CXXFLAGS)
+main.o: vars.o random.o streams.o base64.o rle.o xor.o hamming.o aes.o long_math.o rsa.o el_gamal.o diffie_hellman.o tests.o Main.cpp
 	$(CXX) -o main.o -c Main.cpp $(CXXFLAGS)
 ${TARGET}: main.o
-	$(CXX) -o ${TARGET} vars.o random.o streams.o base64.o rle.o xor.o hamming.o aes.o long_math.o rsa.o el_gamal.o diffie_hellman.o main.o -lgmp -lgmpxx $(CXXFLAGS)
+	$(CXX) -o ${TARGET} vars.o random.o streams.o base64.o rle.o xor.o hamming.o aes.o long_math.o rsa.o el_gamal.o diffie_hellman.o tests.o main.o -lgmp -lgmpxx $(CXXFLAGS)

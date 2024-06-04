@@ -4,7 +4,7 @@
 #include "ElGamal.hpp"
 
 namespace el_gamal {
-	private_key_t::private_key_t (const long_number_t& x, const long_number_t& p, const long_number_t& g) : x (x), p (p), g (g) { }
+	private_key_t::private_key_t (const long_number_t& x_, const long_number_t& p_, const long_number_t& g_) : x (x_), p (p_), g (g_) { }
 	long_number_t private_key_t::decode (const std::pair<long_number_t, long_number_t>& c) {
 		return (c.second * pow_prime_m (c.first, p - 1 - x, p)) % p;
 	}
@@ -18,7 +18,7 @@ namespace el_gamal {
 			}
 		}
 	}
-	public_key_t::public_key_t (const long_number_t& p, const long_number_t& g, const long_number_t& y) : p (p), g (g), y (y) { }
+	public_key_t::public_key_t (const long_number_t& p_, const long_number_t& g_, const long_number_t& y_) : p (p_), g (g_), y (y_) { }
 	std::pair<long_number_t, long_number_t> public_key_t::encode (const long_number_t& m) {
 		long_number_t k = gen_session_key (p, true);
 		long_number_t first = pow_prime_m (g, k, p), second = pow_prime_m (y, k, p);
