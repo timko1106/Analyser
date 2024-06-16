@@ -41,7 +41,7 @@ res_t test_xor () {
 	encryption_t::get ("XOR-1")->decrypt (in3, out3, signature);
 	in3.close ();
 	out3.close ();
-	bool _3_success = check_if_equal ("xor_test1_decoded.png", "xor_test1_need.png");
+	bool _3_success = check_if_equal ("xor_test1_decoded.png", "test1_need.png");
 	if (!_3_success) {
 		NOT_PASSED_ ("WRONG third test");
 	}
