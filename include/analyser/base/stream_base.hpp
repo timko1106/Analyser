@@ -1,5 +1,5 @@
-#ifndef STREAM_BASE
-#define STREAM_BASE
+#ifndef BASE_STREAM_BASE_H_
+#define BASE_STREAM_BASE_H_
 
 #include "vars.hpp"
 

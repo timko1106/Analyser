@@ -1,5 +1,5 @@
-#ifndef STRINGSTREAM_H
-#define STRINGSTREAM_H
+#ifndef BASE_STRINGSTREAM_H_
+#define BASE_STRINGSTREAM_H_
 
 #include "stream_base.hpp"
 #include <cstring>

@@ -1,5 +1,5 @@
-#ifndef FILESTREAM_H
-#define FILESTREAM_H
+#ifndef BASE_FILESTREAM_H_
+#define BASE_FILESTREAM_H_
 
 #include "stream_base.hpp"
 #include <fstream>

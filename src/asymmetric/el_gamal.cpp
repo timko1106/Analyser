@@ -18,7 +18,7 @@ static long_number_t gen_session_key (const long_number_t& p, bool check = false
 	}
 }
 
-el_gamal::el_gamal () : asymmetric_t (asymmetric::EL_GAMAL, "ElGamal") { }
+el_gamal::el_gamal () : asymmetric_t (asymmetric::EL_GAMAL, "ElGamal", UNSAFE_PRIME_ROOT ? 4096 : 2048) { }
 
 el_gamal::private_key_t::private_key_t (const long_number_t& x_, const long_number_t& p_, const long_number_t& g_) : x (x_), p (p_), g (g_) { }
 el_gamal::private_key_t::~private_key_t () { }
@@ -62,9 +62,10 @@ bool el_gamal::public_key_t::check_sign (const long_number_t& m, const asymmetri
 		(pow_prime_m (g, m, p) == (pow_prime_m (y, r, p) * pow_prime_m (r, s, p)) % p);
 }
 std::pair<wrapper<asymmetric_t::private_key_t>, wrapper<asymmetric_t::public_key_t>> el_gamal::generate_keys (_size_t bits) const {
-	long_number_t p = gen_safe_prime (bits / 8 + 1);
+	auto pair = gen_prime_and_root (bits);
+	long_number_t p = pair.first;
 	long_number_t x = gen_session_key (p);
-	long_number_t g = get_primitive_root_prime (p);
+	long_number_t g = pair.second;
 	long_number_t y = pow_m (g, x, p);
 	//printf ("x: %s\n", x.get (10).c_str ());
 	return {wrapper<asymmetric_t::private_key_t>(new private_key_t (x, p, g)), wrapper<asymmetric_t::public_key_t>(new public_key_t (p, g, y))};

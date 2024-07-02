@@ -1,12 +1,13 @@
-#ifndef EL_GAMAL_H
-#define EL_GAMAL_H
+#ifndef ASYMMETRIC_EL_GAMAL_H_
+#define ASYMMETRIC_EL_GAMAL_H_
 
-#include "long_math.hpp"
-#include "crypt_base.hpp"
+#include "../base/long_math.hpp"
+#include "../base/crypt_base.hpp"
 
-class el_gamal_ final : public asymmetric_t {
-	el_gamal_ ();
+class el_gamal final : public asymmetric_t {
+	el_gamal ();
 public:
+	BLOCK_COPYING (el_gamal);
 	class sign_t final : public asymmetric_t::sign_t {
 		long_number_t r, s;
 	public:
@@ -56,10 +57,9 @@ public:
 		wrapper<asymmetric_t::sign_t> sign (const long_number_t& m) const final override;
 		long_number_t decrypt (const asymmetric_t::encrypted_t& enc) const final override;
 	};
-	el_gamal_ (int) = delete;
-	~el_gamal_ ();
+	~el_gamal ();
 	std::pair<wrapper<asymmetric_t::private_key_t>, wrapper<asymmetric_t::public_key_t>> generate_keys (_size_t key_size) const final;
-	static const el_gamal_ instance;
+	static const el_gamal instance;
 };
 
 #endif

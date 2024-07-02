@@ -103,8 +103,8 @@ void stringstream_base::resize (_size_t new_size) {
 		}
 		buff = new char[new_size];
 		memset (buff, 0, new_size);
-		curr = buff;
 		end = buff + new_size;
+		seekg (base_pos {0, EMPTY});
 		return;
 	}
 	if (buff_size () >= new_size) {

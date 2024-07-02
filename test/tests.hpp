@@ -5,6 +5,7 @@
 #include "../include/analyser/base/filestream.hpp"
 #include "../include/analyser/base/crypt_base.hpp"
 #include "../include/analyser/encryption/xor.hpp"
+#include "../include/analyser/base/dependency_graph.hpp"
 #include "tests_base.hpp"
 
 void tests_init ();

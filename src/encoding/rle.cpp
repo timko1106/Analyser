@@ -40,7 +40,7 @@ _size_t rle::encode (istream_base& in, ostream_base& out) const {
 			counter = 1;
 		}
 		(void)is.eject ();
-	} while (block_size = in.read ((char*)b, BLOCK_SIZE), is.own ((char*)b, block_size), block_size);
+	} while (((block_size = in.read ((char*)b, BLOCK_SIZE)), is.own ((char*)b, block_size)), block_size);
 	(void)is.eject ();
 	if (counter) {
 #if VERBOSE
@@ -70,7 +70,7 @@ _size_t rle::decode (istream_base& in, ostream_base& out) const {
 	}
 	block_t b (in.buff_size ());
 	_size_t full_size = in.read ((char*)b, in.buff_size ());
-	ibitstream is ((char*)b, full_size);
+	ibitstream is ((char*)b, full_size, true);
 	obitstream os (0);
 	bit curr, next;
 	_size_t counter = 0;
@@ -93,6 +93,7 @@ _size_t rle::decode (istream_base& in, ostream_base& out) const {
 		curr = !curr;
 		counter = 0;
 	}
+	(void)is.eject ();
 	wrapper<base_pos> _p = os.tellg ();
 	pos* p = (pos*)_p.get ();
 	_size_t result = p->byteoffset + (p->bitoffset ? 1 : 0);

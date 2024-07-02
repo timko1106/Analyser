@@ -15,7 +15,6 @@ static _size_t get_decode_size (_size_t streamsize, _size_t r) {
 }
 
 
-std::vector<hamming> hamming::_instances {};
 hamming::hamming (_size_t _r) : encoding_t (encoding::HAMMING, \
 		"Hamming-" + std::to_string (_r)), r (_r) { }
 hamming::~hamming () { }
@@ -33,7 +32,7 @@ _size_t hamming::encode (istream_base& in, ostream_base& out) const {
 	//В 1-нумерации все биты контроля чётности находятся на позициях - степенях 2.
 	//Поэтому работает трюк: (i + 1) & i = 0 => i - бит контроля чётности в 0-нумерации.
 	while (_size_t len = in.read ((char*)raw, BLOCK_SIZE)) {
-		ibitstream is ((const char*)raw, len);
+		ibitstream is ((char*)raw, len, true);
 		while (is) {
 			if (i == 0) {
 				memset ((char*)parity, 0, r);
@@ -73,6 +72,7 @@ _size_t hamming::encode (istream_base& in, ostream_base& out) const {
 			}
 			i = 0;
 		}
+		(void)is.eject ();
 	}
 	if (i) {
 		for (; i < src_size; ++i) {
@@ -155,25 +155,23 @@ _size_t hamming::decode (istream_base& in, ostream_base& out) const {
 	out.write (os.raw_view (), result);
 	return result;
 }
-
+wrapper<hamming> hamming::instances[COUNT] = {};
 const hamming* hamming::get_instance (_size_t r) {
 	if (r < hamming::MIN_R || r > hamming::MAX_R) {
 		return nullptr;
 	}
-	return &(hamming::instances[r - MIN_R]);
+	return hamming::instances[r - MIN_R].get ();
 }
-const hamming* hamming::gen_instances () {
+void hamming::register_all () {
 	static bool init = false;
 	if (!init) {
-		_instances.reserve (COUNT);
 		for (_size_t r = 0; r < COUNT; ++r) {
-			_instances.push_back (hamming (r + MIN_R));
-			_instances.back ().reorder ();
+			instances[r] = wrapper<hamming> (new hamming (r + MIN_R));
 		}
 		init = true;
 	}
-	return _instances.data ();
 }
-const hamming* hamming::instances = hamming::gen_instances ();
+_ADD_LINK_(hamming, register_all, hamming);
+_ADD_2(hamming, hamming);
 
 #endif

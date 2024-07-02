@@ -18,8 +18,8 @@ class chacha20 final : public encryption_t {
 	void encode_block (word* src, word* dst) const;
 public:
 	static constexpr _size_t KEY_SIZE = REAL_KEY + NONCE_SIZE;//bytes
+	BLOCK_COPYING (chacha20);
 	~chacha20 ();
-	chacha20 (int) = delete;
 	block_t precount (const block_t&) const override final;
 	_size_t encrypt (istream_base& in, ostream_base& out, const block_t& key, const block_t& precounted = block_t::empty) const final override;
 	_size_t decrypt (istream_base& in, ostream_base& out, const block_t& key, const block_t& precounted = block_t::empty) const final override;

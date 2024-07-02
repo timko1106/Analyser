@@ -1,5 +1,5 @@
-#ifndef LONG_MATH_H
-#define LONG_MATH_H
+#ifndef BASE_LONG_MATH_H_
+#define BASE_LONG_MATH_H_
 
 #include "vars.hpp"
 #include "random_source.hpp"
@@ -19,7 +19,9 @@ public:
 	long_number_t (const std::string& hex_view, int base = BASE);
 	long_number_t (const long_number_t& other);
 	long_number_t (long_number_t&& other);
+	long_number_t (const mpz_class& _num);
 	long_number_t () { }
+	const mpz_class& raw () const;
 
 	~long_number_t () { }
 
@@ -90,8 +92,7 @@ public:
 	friend long_number_t gcd (const long_number_t& a, const long_number_t& b);
 	friend long_number_t lcm (const long_number_t& a, const long_number_t& b);
 	friend int probably_prime (const long_number_t& n);
-	friend long_number_t gen_safe_prime (_size_t bytes);
-	friend long_number_t get_primitive_root_prime (const long_number_t& p);
+	friend std::pair<long_number_t, long_number_t> gen_prime_and_root (_size_t bytes);
 };
 template<bool secure>
 long_number_t gen_randint (_size_t bytes);
@@ -104,7 +105,6 @@ long_number_t pow_m (const long_number_t& base, const long_number_t& exp, const 
 long_number_t gcd (const long_number_t& a, const long_number_t& b);
 long_number_t lcm (const long_number_t& a, const long_number_t& b);
 int probably_prime (const long_number_t& n);
-long_number_t gen_safe_prime (_size_t bytes);
-long_number_t get_primitive_root_prime (const long_number_t& p);
+std::pair<long_number_t, long_number_t> gen_prime_and_root (_size_t bits);
 
 #endif

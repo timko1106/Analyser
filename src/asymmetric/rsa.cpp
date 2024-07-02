@@ -49,7 +49,7 @@ bool rsa::public_key_t::check_sign (const long_number_t& m, const asymmetric_t::
 	long_number_t c = ((const rsa::sign_t&)s).get_c ();
 	return pow_m (c, e, n) == m;
 }
-rsa::rsa () : asymmetric_t (asymmetric::RSA, "RSA") { }
+rsa::rsa () : asymmetric_t (asymmetric::RSA, "RSA", 4096) { }
 rsa::~rsa () { }
 std::pair<wrapper<asymmetric_t::private_key_t>, wrapper<asymmetric_t::public_key_t>> rsa::generate_keys (_size_t key_size) const {
 	long_number_t p = gen_randprime (key_size / 16, true), q = gen_randprime (key_size / 16, true);

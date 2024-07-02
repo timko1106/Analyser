@@ -1,12 +1,13 @@
-#ifndef RSA_H
-#define RSA_H
+#ifndef ASYMMETRIC_RSA_H_
+#define ASYMMETRIC_RSA_H_
 
-#include "long_math.hpp"
-#include "crypt_base.hpp"
+#include "../base/long_math.hpp"
+#include "../base/crypt_base.hpp"
 
 class rsa final : public asymmetric_t {
 	rsa ();
 public:
+	BLOCK_COPYING (rsa);
 	class sign_t final : public asymmetric_t::sign_t {
 		long_number_t c;
 	public:
@@ -51,7 +52,6 @@ public:
 		long_number_t decrypt (const asymmetric_t::encrypted_t& enc) const final override;
 		long_number_t decrypt_long (const asymmetric_t::encrypted_t& enc) const;
 	};
-	rsa (int) = delete;
 	~rsa ();
 	std::pair<wrapper<asymmetric_t::private_key_t>, wrapper<asymmetric_t::public_key_t>> generate_keys (_size_t key_size) const final;
 	static const rsa instance;

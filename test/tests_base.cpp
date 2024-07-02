@@ -3,9 +3,9 @@
 
 #include "tests_base.hpp"
 
-test_t::test_t (func_t callable, const char* _name) : \
-		call (callable), name (_name) { }
-res_t test_t::operator() () {
+test_t::test_t (func_t callable, const char* _name, bool _order) : \
+		call (callable), name (_name), order (_order) { }
+res_t test_t::operator() () const {
 	return call ();
 }
 
@@ -46,8 +46,8 @@ view& get () {
 	return view;
 }
 
-int add (func_t callable, const char* name) {
-	get_used ().push_back (test_t{callable, name});
+int add (func_t callable, const char* name, bool order) {
+	get_used ().push_back (test_t(callable, name, order));
 	return 0;
 }
 

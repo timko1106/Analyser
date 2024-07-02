@@ -11,6 +11,12 @@ long_number_t::long_number_t (const long_number_t& other) : num (other.num) { }
 
 long_number_t::long_number_t (long_number_t&& other) : num (std::forward<mpz_class>(other.num)) { }
 
+long_number_t::long_number_t (const mpz_class& _num) : num (_num) { }
+
+const mpz_class& long_number_t::raw () const {
+	return num;
+}
+
 #define ASSIGN_OPERATOR(name, op) \
 	long_number_t& long_number_t::name (const long_number_t& other) { \
 		num op other.num; \
@@ -197,47 +203,47 @@ long_number_t lcm (const long_number_t& a, const long_number_t& b) {
 }
 
 int probably_prime (const long_number_t& n) {
-	const int TRIES = 50;
-	for (int i = 15; i < TRIES; ++i) {
-		int res = mpz_probab_prime_p (n.num.get_mpz_t (), i);
-		if (res == 0) {
-			return 0;
-		}
-		if (res == 2) {
-			return 2;
-		}
-	}
-	return 1;
+	return mpz_probab_prime_p (n.num.get_mpz_t (), 50);
 }
 
-long_number_t gen_safe_prime (_size_t bytes) {
-	long_number_t p_ = gen_randprime (bytes);
+std::pair<long_number_t, long_number_t> gen_prime_and_root (_size_t bits) {
 #if UNSAFE_PRIME_ROOT
-	return p_;
+	return {gen_randprime (bytes), 2};
 #else
-	long_number_t p = p_ * 2 + 1;
-	int res = probably_prime (p);
-	while (res == 0) {
-		p_ = gen_randprime (bytes);
-		p = p_ * 2 + 1;
-		res = probably_prime (p);
-	}
-	return p;
-#endif
-}
-
-long_number_t get_primitive_root_prime (const long_number_t& p) {
-#if UNSAFE_PRIME_ROOT
-	_size_t len = (p.sizeinbase (2) + 7) / 8 + 1;
-	return gen_randint<false> (len) % (p - 3) + 2;
-#else
-	long_number_t p_ = p >> 1;
-	for (long_number_t g = 2; g < p - 1; g += 1) {
-		if ((g * g) % p != 1 && pow_m (g, p_, p) != 1) {
-			return g;
+	_size_t L = bits, N = bits / 2;
+	long_number_t _L = 1 << (L);
+	_size_t wrong = 0;
+	while (true) {
+		long_number_t q = gen_randprime (N / 8);
+		long_number_t q_2 = q << 1;
+		for (_size_t i = 0; i < L - 1; ++i) {
+			long_number_t W = (gen_randint<true>(L / 8 - 1) << 24) | gen_randint<true> (L / 8 - 1);
+			long_number_t X = W + _L;
+			long_number_t c = X % q_2;
+			long_number_t p = X - c + 1;
+			if (p < _L) {
+				continue;
+			}
+			if (probably_prime (p) == 0) {
+				//printf ("WRONG p %s\n", p.get ().c_str ());
+				++wrong;
+				continue;
+			}
+			//printf ("GOOD p %s q %s fails %llu\n", p.get ().c_str (), q.get ().c_str (), wrong);
+			long_number_t e = long_number_t ((p - 1).num / q.num);
+			while (true) {
+				long_number_t h = gen_randint<false> (bits / 8 + 1) % (p - 3) + 2;
+				long_number_t g = pow_m (h, e, p);
+				if (g == 1) {
+					continue;
+				}
+				printf ("Generated p with %llu fails and g\n", wrong);
+				//printf ("Found g %s\n", g.get ().c_str ());
+				return {p, g};
+			}
 		}
+		//printf ("WRONG q %s\n", q.get ().c_str ());
 	}
-	return 3;
 #endif
 }
 

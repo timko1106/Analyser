@@ -8,12 +8,14 @@ res_t test_hamming () {
 	const int tests = sizeof (rs) / sizeof (*rs);
 	int bad = 0;
 	for (int i = 0; i < tests; ++i) {
-		istringstream in (test_message);
+		istringstream in (test_message, TEST_SIZE + 1);
 		ostringstream out {};
 		_size_t r = rs[i];
 		_size_t encoded_size  = hamming::get_instance (r)->encode (in, out);
-		in.own (out.eject (), encoded_size);
+		char* buff = out.eject ();
+		in.own (buff, encoded_size);
 		out.reload (0);
+		buff[(_size_t)rand () % encoded_size] ^= 4;
 		_size_t decoded_size = encoding_t::get ("Hamming-" + std::to_string (r))->decode (in, out);
 		if (strcmp (out.raw_view (), test_message) != 0) {
 			++bad;

@@ -5,10 +5,16 @@
 
 res_t test_all_encodings () {
 	int _all = 0, bad = 0;
-	for (auto& name : encoding_t::get_supported ()) {
-		MESSAGE ("Testing %s\n", name.c_str ());
-		const encoding_t* _alg = encoding_t::get (name);
-		istringstream in (test_message);
+	for (auto& it : encoding_t::get_supported ()) {
+		MESSAGE ("Testing %s\n", it.key ().c_str ());
+		const encoding_t* _alg = encoding_t::get (it.key ());
+		if (_alg != it.value ()) {
+			NOT_PASSED_ ("WRONG POINTER");
+			++bad;
+			++_all;
+			continue;
+		}
+		istringstream in (test_message, TEST_SIZE + 1);
 		ostringstream out {};
 		_size_t encoded_size = _alg->encode (in, out);
 		in.own (out.eject (), encoded_size);

@@ -30,19 +30,24 @@ using func_t = res_t(*)();
 #define BAD NOT_PASSED
 #define BAD_ NOT_PASSED_
 #define ADD_TEST(name, func_name) static const int __##func_name##__ = add (func_name, name)
+#define ADD_TEST_PRIMARY(name, func_name) static const int __##func_name##__ = add (func_name, name, true)
 
 
 #define DIFFIE_HELLMAN_TEST 1
+
 #define EL_GAMAL_TEST 1
 #define RSA_TEST 1
-#define AES_TEST 1
+
 #define HAMMING_TEST 1
-#define XOR_TEST 1
 #define RLE_TEST 1
 #define BASE64_TEST 1
 
+#define XOR_TEST 1
+#define AES_TEST 1
+#define CHACHA20_TEST 1
 
-const _size_t KEY_SIZE_DH = 2048, KEY_SIZE_EL_GAMAL = 4096, KEY_SIZE_RSA = 4096;
+
+const _size_t KEY_SIZE_DH = 2048, KEY_SIZE_EL_GAMAL = UNSAFE_PRIME_ROOT ? 4096 : 2048, KEY_SIZE_RSA = 4096;
 const int TOTAL = 10;
 //const char test_message[] = "HELLO!!!";
 const char test_message[] = "HELLO!!! Ok, it's not too simple, but you can).\r\n\x0aReally simple.";
@@ -51,8 +56,9 @@ const _size_t TEST_SIZE = sizeof (test_message) - 1;
 struct test_t {
 	const func_t call;
 	const char* name;
-	test_t (func_t callable, const char* _name);
-	res_t operator() ();
+	const bool order;
+	test_t (func_t callable, const char* _name, bool _order = false);
+	res_t operator() () const;
 };
 
 class view {
@@ -74,7 +80,7 @@ public:
 
 view& get ();
 
-int add (func_t callable, const char* name);
+int add (func_t callable, const char* name, bool order = false);
 
 void raw_print (const char* buff, _size_t size);
 

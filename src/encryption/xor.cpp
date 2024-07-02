@@ -5,7 +5,7 @@
 
 xor_cipher::xor_cipher (bool signature) : encryption_t (encryption::XOR, "XOR-" + std::to_string(int (signature)), false, FULL, false), sign (signature) { }
 
-_size_t xor_cipher::encrypt (istream_base& in, ostream_base& out, const block_t& _key, const block_t& precounted  __attribute__ ((unused))) const {
+_size_t xor_cipher::encrypt (istream_base& in, ostream_base& out, const block_t& _key, UNUSED const block_t& precounted) const {
 	if ((const char*)_key == nullptr || in.eof ()) {
 		return 0;
 	}

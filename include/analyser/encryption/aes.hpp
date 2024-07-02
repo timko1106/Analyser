@@ -1,9 +1,9 @@
-#ifndef AES_H
-#define AES_H
+#ifndef ENCRYPTION_AES_H_
+#define ENCRYPTION_AES_H_
 
-#include "vars.hpp"
-#include "stream_base.hpp"
-#include "crypt_base.hpp"
+#include "../base/vars.hpp"
+#include "../base/stream_base.hpp"
+#include "../base/crypt_base.hpp"
 
 #include <cstdint>
 //https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf

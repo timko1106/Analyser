@@ -6,12 +6,18 @@
 res_t test_all_encryptions () {
 	const _size_t MIN_KEY_SIZE = 15;
 	int _all = 0, bad = 0;
-	for (auto& name : encryption_t::get_supported ()) {
-		if (name == "XOR-1") {
+	for (auto& it : encryption_t::get_supported ()) {
+		if (it.key () == "XOR-1") {
 			continue;
 		}
-		MESSAGE ("Testing %s\n", name.c_str ());
-		const encryption_t* _alg = encryption_t::get (name);
+		MESSAGE ("Testing %s\n", it.key ().c_str ());
+		const encryption_t* _alg = encryption_t::get (it.key ());
+		if (_alg != it.value ()) {
+			NOT_PASSED_ ("WRONG POINTER");
+			++bad;
+			++_all;
+			continue;
+		}
 		istringstream in (test_message);
 		ostringstream out {};
 		_size_t key_size;

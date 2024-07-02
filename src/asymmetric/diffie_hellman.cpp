@@ -3,9 +3,9 @@
 
 #include "../../include/analyser/asymmetric/diffie_hellman.hpp"
 
-diffie_hellman::diffie_hellman () : asymmetric_exchange_t (asymmetric_exchange::DIFFIE_HELLMAN, "DiffieHellman") { }
+diffie_hellman::diffie_hellman () : asymmetric_exchange_t (asymmetric_exchange::DIFFIE_HELLMAN, "DiffieHellman", 2048) { }
 
-diffie_hellman::key_t::key_t (const public_key_t& _val) : val (_val) {
+diffie_hellman::key_t::key_t (const public_key_t& _val) : asymmetric_exchange_t::key_t(_val.get_p ().sizeinbase (2)), val (_val) {
 	long_number_t p = val.get_p (), g = val.get_g ();
 	_size_t bytes = (p.sizeinbase (2) + 7) / 8;
 	a = gen_randint<true>(bytes + 1) % (p - 2) + 2;
@@ -16,7 +16,7 @@ diffie_hellman::key_t::key_t (const public_key_t& _val) : val (_val) {
 	}
 }
 
-diffie_hellman::key_t::key_t (const public_key_t& _val, const message_t& other) : val (_val) {
+diffie_hellman::key_t::key_t (const public_key_t& _val, const message_t& other) : asymmetric_exchange_t::key_t (_val.get_p ().sizeinbase (2)), val (_val) {
 	long_number_t p = val.get_p (), g = val.get_g (), _A = other.get_val ();
 	_size_t bytes = (p.sizeinbase (2) + 7) / 8;
 	a = gen_randint<true>(bytes + 1) % (p - 2) + 2;
@@ -46,9 +46,13 @@ wrapper<asymmetric_exchange_t::public_key_t> diffie_hellman::key_t::get_public (
 }
 diffie_hellman::~diffie_hellman () { }
 wrapper<asymmetric_exchange_t::key_t> diffie_hellman::gen_key (_size_t bits) const {
-	long_number_t p = gen_safe_prime (bits / 8 + 1);
-	long_number_t g = get_primitive_root_prime (p);
+	auto pair = gen_prime_and_root (bits);
+	long_number_t p = pair.first;
+	long_number_t g = pair.second;
 	return wrapper<asymmetric_exchange_t::key_t> (new key_t (public_key_t (p, g)));
+}
+wrapper<asymmetric_exchange_t::key_t> diffie_hellman::gen_default_key () const {
+	return gen_key (this->default_key_size ());
 }
 wrapper<asymmetric_exchange_t::key_t> diffie_hellman::gen_other (const asymmetric_exchange_t::message_t& A, const asymmetric_exchange_t::public_key_t& pub) const {
 	if (!A.verify (asymmetric_exchange::DIFFIE_HELLMAN) || !pub.verify (asymmetric_exchange::DIFFIE_HELLMAN)) {

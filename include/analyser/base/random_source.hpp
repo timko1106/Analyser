@@ -1,5 +1,5 @@
-#ifndef RANDOM_SOURCE_H
-#define RANDOM_SOURCE_H
+#ifndef BASE_RANDOM_SOURCE_H_
+#define BASE_RANDOM_SOURCE_H_
 
 #include "vars.hpp"
 #include <random>
@@ -24,6 +24,8 @@ public:
 	static constexpr _size_t TYPE_SIZE = sizeof (type);
 	static type get ();
 	static type get_secure ();
+	static block_t get_randkey (_size_t bytes);
+	static block_t get_secure_randkey (_size_t bytes);
 };
 
 #endif

@@ -5,11 +5,16 @@
 
 res_t test_all_asymmetrics_exchange () {
 	int _all = 0, bad = 0;
-	for (auto& name : asymmetric_exchange_t::get_supported ()) {
-		MESSAGE ("Testing %s\n", name.c_str ());
-		const asymmetric_exchange_t* _alg = asymmetric_exchange_t::get (name);
-		_size_t key_size = _alg->default_key_size ();
-		auto key_a = _alg->gen_key (key_size);
+	for (auto& it : asymmetric_exchange_t::get_supported ()) {
+		MESSAGE ("Testing %s\n", it.key ().c_str ());
+		const asymmetric_exchange_t* _alg = asymmetric_exchange_t::get (it.key ());
+		if (_alg != it.value ()) {
+			NOT_PASSED_ ("WRONG POINTER");
+			++bad;
+			++_all;
+			continue;
+		}
+		auto key_a = _alg->gen_default_key ();
 		auto A = key_a->gen_A ();
 		auto pub = key_a->get_public ();
 		auto key_b = _alg->gen_other (*A, *pub);

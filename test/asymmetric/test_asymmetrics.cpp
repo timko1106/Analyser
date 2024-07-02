@@ -5,9 +5,17 @@
 
 res_t test_all_asymmetrics () {
 	int _all = 0, bad = 0;
-	for (auto& name : asymmetric_t::get_supported ()) {
+	for (auto& it : asymmetric_t::get_supported ()) {
+		const std::string& name = it.key ();
+		const asymmetric_t* _alg = it.value ();
 		MESSAGE ("Starting %s\n", name.c_str ());
 		const asymmetric_t* alg = asymmetric_t::get (name);
+		if (_alg != alg) {
+			NOT_PASSED_ ("WRONG POINTER");
+			++bad;
+			++_all;
+			continue;
+		}
 		const _size_t key_size = alg->default_key_size ();//bytes
 		auto keys = alg->generate_keys (key_size);
 		//1: Encrypt/decrypt

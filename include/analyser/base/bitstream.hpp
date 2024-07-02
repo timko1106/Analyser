@@ -1,5 +1,5 @@
-#ifndef BITSTREAM_H
-#define BITSTREAM_H
+#ifndef BASE_BITSTREAM_H_
+#define BASE_BITSTREAM_H_
 
 #include <cstdlib>
 #include <cstring>
