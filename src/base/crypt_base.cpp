@@ -84,7 +84,17 @@ asymmetric_exchange_t::asymmetric_exchange_t (asymmetric_exchange _type, const s
 _size_t asymmetric_exchange_t::default_key_size () const {
 	return key_size;
 }
+
+MAKE_LIMITED(digit_signature_t, signature);
+digit_signature_t::digit_signature_t (signature _type, const std::string& _name, _size_t _key_size) : type (_type), name (_name), default_key (_key_size) {
+	storage<digit_signature_t>::add (name, this);
+}
+_size_t digit_signature_t::key_size () const {
+	return default_key;
+}
+
 #undef MAKE
+#undef MAKE_LIMITED
 
 
 #endif

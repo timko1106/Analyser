@@ -206,12 +206,8 @@ int probably_prime (const long_number_t& n) {
 	return mpz_probab_prime_p (n.num.get_mpz_t (), 50);
 }
 
-std::pair<long_number_t, long_number_t> gen_prime_and_root (_size_t bits) {
-#if UNSAFE_PRIME_ROOT
-	return {gen_randprime (bytes), 2};
-#else
-	_size_t L = bits, N = bits / 2;
-	long_number_t _L = 1 << (L);
+dsa_params generation (_size_t L, _size_t N) {
+	const long_number_t _L = 1 << L;
 	_size_t wrong = 0;
 	while (true) {
 		long_number_t q = gen_randprime (N / 8);
@@ -232,18 +228,25 @@ std::pair<long_number_t, long_number_t> gen_prime_and_root (_size_t bits) {
 			//printf ("GOOD p %s q %s fails %llu\n", p.get ().c_str (), q.get ().c_str (), wrong);
 			long_number_t e = long_number_t ((p - 1).num / q.num);
 			while (true) {
-				long_number_t h = gen_randint<false> (bits / 8 + 1) % (p - 3) + 2;
+				long_number_t h = gen_randint<false> ((L + 7) / 8 + 1) % (p - 3) + 2;
 				long_number_t g = pow_m (h, e, p);
 				if (g == 1) {
 					continue;
 				}
-				printf ("Generated p with %llu fails and g\n", wrong);
+				printf ("Generated p, q, g with %llu fails\n", wrong);
 				//printf ("Found g %s\n", g.get ().c_str ());
-				return {p, g};
+				return {p, q, g};
 			}
 		}
-		//printf ("WRONG q %s\n", q.get ().c_str ());
 	}
+}
+
+std::pair<long_number_t, long_number_t> gen_prime_and_root (_size_t bits) {
+#if UNSAFE_PRIME_ROOT
+	return {gen_randprime (bytes), 2};
+#else
+	dsa_params p = generation (bits, bits / 2);
+	return {p.p, p.g};
 #endif
 }
 

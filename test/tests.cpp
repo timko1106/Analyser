@@ -69,6 +69,7 @@ res_t test_all () {
 	PRINT_SUPPORTED ("encryption", encryption_t);
 	PRINT_SUPPORTED ("asymmetric", asymmetric_t);
 	PRINT_SUPPORTED ("asymmetric key exchange", asymmetric_exchange_t);
+	PRINT_SUPPORTED ("digital signatures", digit_signature_t);
 #undef PRINT_SUPPORTED
 	res_t res_1 = test_cycle (true);
 	res_t res_2 = test_cycle (false);

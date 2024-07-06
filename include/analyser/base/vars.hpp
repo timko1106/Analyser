@@ -45,8 +45,8 @@ private:
 		iter it;
 	public:
 		iterator (iter _it) : it (_it) { }
-		const iterator& operator++ () const {
-			++const_cast<iter&>(it);
+		iterator& operator++ () {
+			++it;
 			return *this;
 		}
 		const key_t& key () const {
@@ -66,10 +66,10 @@ private:
 		}
 	};
 public:
-	const iterator begin () const {
+	iterator begin () const {
 		return iterator (vals->begin ());
 	}
-	const iterator end () const {
+	iterator end () const {
 		return iterator (vals->end ());
 	}
 	_size_t size () const {
@@ -87,7 +87,7 @@ private:
 		iter it;
 	public:
 		iterator (iter _it) : it (_it) { }
-		const iterator& operator++ () const {
+		iterator& operator++ () {
 			++const_cast<iter&>(it);
 			return *this;
 		}
@@ -100,12 +100,16 @@ private:
 		const T& operator* () const {
 			return *it;
 		}
+		iterator& operator+ (ssize_t shift) {
+			it += shift;
+			return *this;
+		}
 	};
 public:
-	const iterator begin () const {
+	iterator begin () const {
 		return iterator (vals->begin ());
 	}
-	const iterator end () const {
+	iterator end () const {
 		return iterator (vals->end ());
 	}
 	_size_t size () const {

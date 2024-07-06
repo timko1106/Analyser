@@ -11,6 +11,7 @@
 constexpr int BASE = 16;
 
 using shift_t = unsigned;
+struct dsa_params;
 
 class long_number_t {
 	mpz_class num;
@@ -93,6 +94,7 @@ public:
 	friend long_number_t lcm (const long_number_t& a, const long_number_t& b);
 	friend int probably_prime (const long_number_t& n);
 	friend std::pair<long_number_t, long_number_t> gen_prime_and_root (_size_t bytes);
+	friend dsa_params generation (_size_t L, _size_t N);
 };
 template<bool secure>
 long_number_t gen_randint (_size_t bytes);
@@ -105,6 +107,10 @@ long_number_t pow_m (const long_number_t& base, const long_number_t& exp, const 
 long_number_t gcd (const long_number_t& a, const long_number_t& b);
 long_number_t lcm (const long_number_t& a, const long_number_t& b);
 int probably_prime (const long_number_t& n);
+struct dsa_params {
+	long_number_t p, q, g;
+};
+dsa_params generation (_size_t L, _size_t N);
 std::pair<long_number_t, long_number_t> gen_prime_and_root (_size_t bits);
 
 #endif

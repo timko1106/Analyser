@@ -73,7 +73,7 @@ point curve::invert (const point& P) const {
 	if (P.inf ()) {
 		return point (true);
 	}
-	return point (P.get_x (), -P.get_y ());
+	return point (P.get_x (), (-P.get_y ()) % p);
 }
 bool curve::on_curve (const point& P) const {
 	if (P.inf ()) {

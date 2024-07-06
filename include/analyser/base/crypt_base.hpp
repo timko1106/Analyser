@@ -23,6 +23,10 @@ enum class asymmetric : int {
 	EL_GAMAL,
 	RSA
 };
+enum class signature : int {
+	DSA,
+	ECDSA
+};
 const asymmetric _ALL_ASYMMETRIC[] = {asymmetric::EL_GAMAL, asymmetric::RSA};
 enum class asymmetric_exchange : int {
 	DIFFIE_HELLMAN,
@@ -72,6 +76,47 @@ public:
 };
 
 const long_number_t INVALID = -1;
+class digit_signature_t {
+	const signature type;
+	const std::string name;
+	const _size_t default_key;
+protected:
+	digit_signature_t (signature _type, const std::string& _name, _size_t _key_size);
+public:
+	BLOCK_COPYING (digit_signature_t);
+	virtual ~digit_signature_t ();
+	class sign_t {
+	protected:
+		sign_t () = default;
+	public:
+		NO_PUBLIC_CTOR (sign_t);
+		virtual ~sign_t () = default;
+		virtual bool verify (signature _alg) const = 0;
+	};
+	class public_key_t {
+	protected:
+		public_key_t () = default;
+	public:
+		NO_PUBLIC_CTOR (public_key_t);
+		virtual ~public_key_t () = default;
+		virtual bool check_sign (const long_number_t& m, const sign_t& s) const = 0;
+	};
+	class private_key_t {
+	protected:
+		private_key_t () = default;
+	public:
+		NO_PUBLIC_CTOR (private_key_t);
+		virtual ~private_key_t () = default;
+		virtual wrapper<sign_t> sign (const long_number_t& m) const = 0;
+	};
+	virtual std::pair<wrapper<private_key_t>, wrapper<public_key_t>> generate_keys () const = 0;
+
+	std::string get_name () const;
+	signature get_type () const;
+	_size_t key_size () const;//bits
+	static const digit_signature_t* get (const std::string& name);
+	static const map_view<std::map<std::string, const digit_signature_t*>>& get_supported ();
+};
 class asymmetric_t {
 	const asymmetric type;
 	const std::string name;
