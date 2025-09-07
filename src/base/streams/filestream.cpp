@@ -3,7 +3,7 @@
 
 #include "../../../include/analyser/base/filestream.hpp"
 
-ifstream::ifstream (const char* const name) : fs (name, std::ios_base::in) {
+ifstream::ifstream (const char* const name) : fs (name, std::ios_base::in | std::ios_base::binary) {
 	beg = fs.tellg ();
 	fs.seekg (0, std::ios_base::end);
 	auto end = fs.tellg ();
@@ -104,7 +104,7 @@ bool check_if_equal (const char* a, const char* b) {
 		return false;
 	}
 	const _size_t BUFF_SIZE = 1024;
-	char buff_1[BUFF_SIZE + 1]{}, buff_2[BUFF_SIZE + 1]{};
+	char buff_1[BUFF_SIZE]{}, buff_2[BUFF_SIZE]{};
 	memset (buff_1, 0, BUFF_SIZE);
 	memset (buff_2, 0, BUFF_SIZE);
 	bool ok = true;
@@ -114,7 +114,7 @@ bool check_if_equal (const char* a, const char* b) {
 			ok = false;
 			break;
 		}
-		if (memcmp (buff_1, buff_2, BUFF_SIZE)) {
+		if (memcmp (buff_1, buff_2, BUFF_SIZE) != 0) {
 			ok = false;
 			break;
 		}

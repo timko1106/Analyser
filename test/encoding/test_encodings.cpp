@@ -21,7 +21,7 @@ res_t test_all_encodings () {
 		out.reload (0);
 		_size_t decoded_size = _alg->decode (in, out);
 		out << '\00';
-		if (strcmp (test_message, out.raw_view ()) != 0) {
+		if (raw_check_fail (out.raw_view (), decoded_size) != 0) {
 			++bad;
 			NOT_PASSED ("FAILED, need: \"%s\", got: \"%.*s\"", test_message, (int)decoded_size, out.raw_view ());
 			MESSAGE ("%sorigin: ", RED);

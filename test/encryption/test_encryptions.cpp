@@ -36,7 +36,7 @@ res_t test_all_encryptions () {
 		in.own (out.eject (), encrypted);
 		out.reload (0);
 		_size_t decrypted = _alg->decrypt (in, out, key, precount);
-		if (strcmp (test_message, out.raw_view()) != 0) {
+		if (raw_check_fail (out.raw_view(), decrypted, in.used_size ()) != 0) {
 			++bad;
 			NOT_PASSED_ ("FAILED");
 			MESSAGE ("%sneed: ", RED);

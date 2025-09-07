@@ -11,8 +11,9 @@ res_t test_rle () {
 	out.reload (0);
 	_size_t decoded_size = encoding_t::get ("RLE")->decode (in, out);
 	out << '\00';
-	int success = strcmp (out.raw_view (), test_message) == 0;
-	if (!success) {
+	int success = 1;
+	if (raw_check_fail (out.raw_view (), decoded_size)) {
+		success = 0;
 		NOT_PASSED ("WRONG need: \"%s\", got: \"%.*s\"", test_message, (int)decoded_size, out.raw_view ());
 		raw_bin (out.raw_view (), decoded_size);
 	}

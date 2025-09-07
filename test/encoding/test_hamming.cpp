@@ -17,7 +17,7 @@ res_t test_hamming () {
 		out.reload (0);
 		buff[(_size_t)rand () % encoded_size] ^= 4;
 		_size_t decoded_size = encoding_t::get ("Hamming-" + std::to_string (r))->decode (in, out);
-		if (strcmp (out.raw_view (), test_message) != 0) {
+		if (raw_check_fail (out.raw_view (), decoded_size) != 0) {
 			++bad;
 			NOT_PASSED ("WRONG test: %d, r: %llu, need: \"%s\", got: \"%.*s\"", i + 1, r, test_message, (int)decoded_size, out.raw_view ());
 			raw_bin (out.raw_view (), decoded_size);

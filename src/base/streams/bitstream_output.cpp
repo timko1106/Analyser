@@ -3,9 +3,9 @@
 
 #include "../../../include/analyser/base/bitstream.hpp"
 
-obitstream::obitstream(_size_t buffer_size) : obitstream_base (), ostringstream (buffer_size) { }
+obitstream::obitstream(_size_t buffer_size) : ostringstream (buffer_size), bitoffset (0) { }
 
-obitstream_base& obitstream::operator<<(bit value) {
+obitstream& obitstream::operator<<(bit value) {
 	if (eof ()) {
 		resize (buff_size () * 2);
 	}
@@ -38,7 +38,7 @@ void obitstream::seekg(const base_pos& p) {
 }
 
 wrapper<base_pos> obitstream::tellg() const {
-	return wrapper<base_pos>(new pos ((_size_t)(curr - buff), bitoffset));
+	return wrapper<base_pos>(new pos (used_size (), bitoffset));
 }
 
 #endif

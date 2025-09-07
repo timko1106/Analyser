@@ -92,7 +92,14 @@ digit_signature_t::digit_signature_t (signature _type, const std::string& _name,
 _size_t digit_signature_t::key_size () const {
 	return default_key;
 }
-
+hashing_t::hashing_t(hashes _type, const std::string& _name, _size_t _block_size) 
+	: type(_type), name(_name), block_size(_block_size) {
+	storage<hashing_t>::add (name, this);
+}
+MAKE_LIMITED(hashing_t, hashes);
+_size_t hashing_t::hashed_size () const {
+	return block_size;
+}
 #undef MAKE
 #undef MAKE_LIMITED
 

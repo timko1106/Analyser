@@ -14,7 +14,7 @@ res_t test_chacha20 () {
 		out.reload (0);
 		_size_t decrypted_size = encryption_t::get ("ChaCha20")->decrypt (in, out, key);
 		out << '\00';
-		if (strcmp (out.raw_view (), test_message) != 0) {
+		if (raw_check_fail (out.raw_view (), TEST_SIZE) != 0) {
 			++bad;
 			NOT_PASSED ("WRONG, need: \"%s\", got: \"%s\"", test_message, out.raw_view ());
 			MESSAGE ("%sneed: ", RED);

@@ -24,39 +24,26 @@ stringstream_base::stringstream_base (char* buffer, _size_t buff_size, bool use)
 	end = buff + buff_size;
 	curr = buff;
 }
-stringstream_base::stringstream_base (const char* buffer, _size_t buff_size) {
-	if (buff_size == FULL) {
-		if (buffer == nullptr) {
-			buff_size = DEFAULT_SIZE;
-		} else {
-			buff_size = strlen (buffer) + INCLUDE_ZERO_TERMINATOR;
-		}
-	} else if (buff_size == 0) {
-		buff_size = DEFAULT_SIZE;
-	}
-	buff = new char[buff_size];
-	if (buffer == nullptr) {
-		memset (buff, 0, buff_size);
-	} else {
-		memcpy (buff, buffer, buff_size);
-	}
-	end = buff + buff_size;
-	curr = buff;
+stringstream_base::stringstream_base (const char* buffer, _size_t buff_size) 
+	: stringstream_base (const_cast<char*> (buffer), buff_size, false) {
 }
 stringstream_base::~stringstream_base() {
 #if VERBOSE_DTORS
 	printf ("~stringstream_base at %p ", (void*)this);
 #endif
-	if (buff) {
-		delete[] buff;
-#if VERBOSE_DTORS
-		printf ("%p deleted", buff);
-#endif
-		buff = nullptr;
+	destroy ();
+}
+void stringstream_base::destroy () {
+	if (buff == nullptr) return;
+	const _size_t size = buff_size ();
+	if (size) {
+		memset (buff, 0, size);
 	}
 #if VERBOSE_DTORS
-	printf ("\n");
+	printf ("%p deleted\n", buff);
 #endif
+	delete[] buff;
+	buff = curr = end = nullptr;
 }
 bool stringstream_base::eof () const {
 	return curr == end;
@@ -84,7 +71,7 @@ char* stringstream_base::eject () {
 	return tmp;
 }
 wrapper<base_pos> stringstream_base::tellg () const {
-	return wrapper<base_pos>(new base_pos{(_size_t)(curr - buff)});
+	return wrapper<base_pos>(new base_pos{used_size ()});
 }
 void stringstream_base::seekg (const base_pos& to) {
 	curr = buff + to.byteoffset;
@@ -110,12 +97,16 @@ void stringstream_base::resize (_size_t new_size) {
 	if (buff_size () >= new_size) {
 		return;
 	}
-	_size_t offset = (_size_t)(curr - buff);
-	_size_t old_size = (_size_t)(end - buff);
+	_size_t offset = used_size ();
+	_size_t old_size = buff_size ();
 	char* new_buff = new char[new_size];
-	memcpy (new_buff, buff, old_size);
+	if (old_size) {
+		memcpy (new_buff, buff, old_size);
+	}
 	memset (new_buff + old_size, 0, new_size - old_size);
-	delete[] buff;
+
+	destroy ();
+
 	buff = new_buff;
 	end = buff + new_size;
 	base_pos to (offset, EMPTY);
@@ -126,9 +117,7 @@ void stringstream_base::reset  () {
 	seekg (p);
 }
 void stringstream_base::own (char* buffer, _size_t new_size) {
-	if (buff) {
-		delete[] buff;
-	}
+	destroy ();
 	buff = buffer;
 	end = buff + new_size;
 	base_pos p (0, EMPTY);
@@ -138,9 +127,8 @@ void stringstream_base::reload (_size_t new_size) {
 	if (new_size == 0) {
 		new_size = DEFAULT_SIZE;
 	}
-	if (buff) {
-		delete[] buff;
-	}
+	destroy ();
+
 	buff = new char[new_size];
 	end = buff + new_size;
 	memset (buff, 0, new_size);
@@ -153,24 +141,6 @@ istringstream::~istringstream () {
 #if VERBOSE_DTORS
 	printf ("~istringstream at %p\n", (void*)this);
 #endif
-	}
-void istringstream::seekg(const base_pos &p) {
-	stringstream_base::seekg (p);
-}
-wrapper<base_pos> istringstream::tellg() const {
-	return stringstream_base::tellg ();
-}
-bool istringstream::eof() const {
-	return stringstream_base::eof ();
-}
-_size_t istringstream::buff_size() const {
-	return stringstream_base::buff_size ();
-}
-_size_t istringstream::used_size () const {
-	return stringstream_base::buff_size ();
-}
-_size_t istringstream::free_size () const {
-	return stringstream_base::free_size ();
 }
 
 istream_base& istringstream::operator>> (char& val) {
@@ -198,37 +168,11 @@ _size_t istringstream::read (char* buffer, _size_t streamsize) {
 	return streamsize;
 }
 
-ostringstream::ostringstream (size_t buff_size) : stringstream_base ((const char*)nullptr, buff_size) { }
+ostringstream::ostringstream (_size_t buff_size) : stringstream_base ((const char*)nullptr, buff_size ? buff_size : DEFAULT_SIZE) { }
 ostringstream::~ostringstream () {
 #if VERBOSE_DTORS
 	printf ("~ostringstream at %p\n", (void*)this);
 #endif
-}
-void ostringstream::seekg(const base_pos &p) {
-	stringstream_base::seekg (p);
-}
-wrapper<base_pos> ostringstream::tellg() const {
-	return stringstream_base::tellg ();
-}
-bool ostringstream::eof() const {
-	return stringstream_base::eof ();
-}
-_size_t ostringstream::buff_size() const {
-	return stringstream_base::buff_size ();
-}
-_size_t ostringstream::used_size () const {
-	return stringstream_base::buff_size ();
-}
-_size_t ostringstream::free_size () const {
-	return stringstream_base::free_size ();
-}
-ostream_base& ostringstream::operator<< (char val) {
-	if (stringstream_base::eof ()) {
-		resize (buff_size () * 2);
-	}
-	*curr = val;
-	++curr;
-	return *this;
 }
 void ostringstream::write (const char* buffer, _size_t streamsize) {
 	if (stringstream_base::eof ()) {
@@ -237,11 +181,24 @@ void ostringstream::write (const char* buffer, _size_t streamsize) {
 	if (streamsize == FULL) {
 		streamsize = strlen (buffer);
 	}
-	while (streamsize > (_size_t)(end - curr)) {
-		resize (buff_size () * 2);
+	if (streamsize > free_size ()) {
+		const _size_t _min = streamsize + used_size ();
+		_size_t new_size = buff_size ();
+		do {
+			new_size *= 2;
+		} while (_min > new_size);
+		resize (new_size);
 	}
 	memcpy (curr, buffer, streamsize);
 	curr += streamsize;
+}
+ostream_base& ostringstream::operator<< (char val) {
+	if (stringstream_base::eof ()) {
+		resize (buff_size () * 2);
+	}
+	*curr = val;
+	++curr;
+	return *this;
 }
 
 #endif

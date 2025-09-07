@@ -3,11 +3,11 @@
 
 #include "../../../include/analyser/base/bitstream.hpp"
 
-ibitstream::ibitstream (char* value, _size_t streamsize, bool own) : ibitstream_base (), istringstream (value, streamsize, own) { }
+ibitstream::ibitstream (char* value, _size_t streamsize, bool own) : istringstream (value, streamsize, own), bitoffset (0) { }
 
-ibitstream::ibitstream(const char* value, _size_t streamsize) : ibitstream_base (), istringstream (const_cast<char*>(value), streamsize, false) { }
+ibitstream::ibitstream(const char* value, _size_t streamsize) : istringstream (value, streamsize), bitoffset (0) { }
 wrapper<base_pos> ibitstream::tellg () const {
-	return wrapper<base_pos>(new pos((_size_t)(curr - buff), bitoffset));
+	return wrapper<base_pos>(new pos(used_size (), bitoffset));
 }
 void ibitstream::seekg(const base_pos& p){
 	stringstream_base::seekg (p);
@@ -22,7 +22,7 @@ void ibitstream::seekg(const base_pos& p){
 	bitoffset = (p_->bitoffset) & 0x111b;
 }
 
-ibitstream_base& ibitstream::operator>>(bit& value) {
+ibitstream& ibitstream::operator>>(bit& value) {
 	if (eof()) {
 		value = false;
 		return *this;

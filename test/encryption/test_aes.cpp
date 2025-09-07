@@ -19,7 +19,7 @@ res_t test_aes () {
 		out.reload (0);
 		result = aes::variants[i]->decrypt (in, out, cipher);
 		out << '\00';
-		if (strcmp (test_message, out.raw_view ()) != 0) {
+		if (raw_check_fail (out.raw_view (), TEST_SIZE) != 0) {
 			++bad;
 			NOT_PASSED ("WRONG test: %d, key_size: %llu, need: \"%s\", got: \"%.*s\"", i + 1, cipher.size (), test_message, (int)result, out.raw_view ());
 		}

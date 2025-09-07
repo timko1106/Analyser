@@ -75,6 +75,9 @@ void raw_bin (const char* buff, _size_t size) {
 		MESSAGE (BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY (byte));
 	}
 }
+bool raw_check_fail (const char* src, _size_t length, _size_t test_len, const char* origin) {
+	return length < test_len || memcmp (src, origin, test_len) != 0;
+}
 #undef BYTE_TO_BINARY
 #undef BYTE_TO_BINARY_PATTERN
 

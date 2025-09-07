@@ -14,11 +14,11 @@ res_t test_xor () {
 	//Test1: simple text
 	istringstream in (test_message);
 	ostringstream out (TEST_SIZE + 1);
-	(void)xor_cipher::instance.encrypt (in, out, key_1);
-	in.own (out.eject (), TEST_SIZE);
-	out.reload (TEST_SIZE + 1);
+	_size_t encrypted_size = xor_cipher::instance.encrypt (in, out, key_1);
+	in.own (out.eject (), encrypted_size);
+	out.reset ();
 	_size_t decrypted_size = xor_cipher::instance.decrypt (in, out, key_1);
-	bool _1_success = strcmp (out.raw_view(), test_message) == 0;
+	bool _1_success = !raw_check_fail (out.raw_view (), decrypted_size, TEST_SIZE + 1);
 	if (!_1_success) {
 		NOT_PASSED ("WRONG first test, need: \"%s\", got: \"%.*s\"", test_message, (int)decrypted_size, out.raw_view ());
 	}
