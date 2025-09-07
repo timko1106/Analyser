@@ -86,4 +86,6 @@ void raw_print (const char* buff, _size_t size);
 
 void raw_bin (const char* buff, _size_t size);
 
+bool raw_check_fail (const char* src, _size_t length, _size_t test_len = TEST_SIZE, const char* origin = test_message);
+
 #endif

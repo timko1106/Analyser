@@ -4,33 +4,36 @@
 #include "vars.hpp"
 #include "stream_base.hpp"
 #include "long_math.hpp"
-#include "dependency_graph.hpp"
 #include <map>
-#include <vector>
+#include "dependency_graph.hpp"
 
 
-enum class encoding : int {
+enum class encoding : uint8_t {
 	BASE64,
 	RLE,
 	HAMMING
 };
-enum class encryption : int {
+enum class encryption : uint8_t {
 	AES,
 	XOR,
 	CHACHA20
 };
-enum class asymmetric : int {
+enum class asymmetric : uint8_t {
 	EL_GAMAL,
 	RSA
 };
-enum class signature : int {
+enum class signature : uint8_t {
 	DSA,
 	ECDSA
 };
 const asymmetric _ALL_ASYMMETRIC[] = {asymmetric::EL_GAMAL, asymmetric::RSA};
-enum class asymmetric_exchange : int {
+enum class asymmetric_exchange : uint8_t {
 	DIFFIE_HELLMAN,
 	EC_DIFFIE_HELLMAN
+};
+
+enum class hashes : uint8_t {
+	SHA256
 };
 
 
@@ -222,6 +225,25 @@ public:
 	static const asymmetric_exchange_t* get (const std::string& name);
 	//static const std::vector<std::string>& get_supported ();
 	static const map_view<std::map<std::string, const asymmetric_exchange_t*>>& get_supported ();
+};
+
+class hashing_t {
+	const hashes type;
+	const std::string name;
+	const _size_t block_size;
+protected:
+	hashing_t (hashes _type, const std::string& _name, _size_t _block_size);
+public:
+	BLOCK_COPYING(hashing_t);
+	virtual ~hashing_t ();
+	std::string get_name () const;
+	hashes get_type () const;
+	_size_t hashed_size () const;
+
+	virtual void hash (istream_base& in, ostream_base& out) const = 0;
+
+	static const hashing_t* get (const std::string& name);
+	static const map_view<std::map<std::string, const hashing_t*>>& get_supported ();
 };
 
 #endif

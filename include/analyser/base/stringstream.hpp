@@ -16,7 +16,7 @@ public:
 	stringstream_base (char* buffer, _size_t buff_size = FULL, bool use = false);
 	stringstream_base (const char* buffer = nullptr, _size_t buff_size = FULL);
 	virtual ~stringstream_base ();
-	virtual bool eof () const override;
+	bool eof () const override;
 	operator bool() const;
 	_size_t buff_size() const override;
 	_size_t used_size () const override;
@@ -32,6 +32,8 @@ public:
 	//Безвозвратное удаление массива.
 	void reload (_size_t new_size);
 	void own (char* buffer, _size_t buff_size);
+
+	void destroy ();
 };
 
 class istringstream : public stringstream_base, public istream_base {
@@ -39,26 +41,50 @@ public:
 	istringstream (char* buffer, _size_t buffer_size = FULL, bool use = false);
 	istringstream (const char* buffer, _size_t buffer_size = FULL);
 	virtual ~istringstream ();
-	virtual void seekg(const base_pos &p) override;
-	virtual wrapper<base_pos> tellg() const override;
-	virtual bool eof() const override;
-	virtual _size_t buff_size() const override;
-	virtual _size_t used_size () const override;
-	virtual _size_t free_size () const override;
+	void seekg(const base_pos &p) override {
+		stringstream_base::seekg (p);
+	}
+	wrapper<base_pos> tellg() const override {
+		return stringstream_base::tellg ();
+	}
+	bool eof() const override final {
+		return stringstream_base::eof ();
+	}
+	_size_t buff_size () const override final {
+		return stringstream_base::buff_size ();
+	}
+	_size_t used_size () const override final {
+		return stringstream_base::used_size ();
+	}
+	_size_t free_size () const override final {
+		return stringstream_base::free_size ();
+	}
 	istream_base& operator>> (char& val) override;
 	_size_t read (char* buffer, _size_t streamsize) override;
 };
 
 class ostringstream : public stringstream_base, public ostream_base {
 public:
-	ostringstream (size_t buff_size = 0);
-	virtual ~ostringstream ();
-	virtual void seekg(const base_pos &p) override;
-	virtual wrapper<base_pos> tellg() const override;
-	virtual bool eof() const override;
-	virtual _size_t buff_size () const override;
-	virtual _size_t used_size () const override;
-	virtual _size_t free_size () const override;
+	ostringstream (_size_t buff_size = 0);
+	~ostringstream ();
+	void seekg(const base_pos &p) override {
+		stringstream_base::seekg (p);
+	}
+	wrapper<base_pos> tellg() const override {
+		return stringstream_base::tellg ();
+	}
+	bool eof() const override final {
+		return stringstream_base::eof ();
+	}
+	_size_t buff_size () const override final {
+		return stringstream_base::buff_size ();
+	}
+	_size_t used_size () const override final {
+		return stringstream_base::used_size ();
+	}
+	_size_t free_size () const override final {
+		return stringstream_base::free_size ();
+	}
 	ostream_base& operator<< (char val) override;
 	void write (const char* buffer, _size_t streamsize) override;
 };

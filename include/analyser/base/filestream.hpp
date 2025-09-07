@@ -5,7 +5,7 @@
 #include <fstream>
 #include <cstring>
 
-class ifstream : public istream_base {
+class ifstream final : public istream_base {
 	std::fstream fs;
 	_size_t streamsize;
 	std::streamoff beg;
@@ -24,7 +24,7 @@ public:
 	_size_t free_size () const;
 };
 
-class ofstream : public ostream_base {
+class ofstream final : public ostream_base {
 	std::fstream fs;
 	std::streamoff beg;
 public:
